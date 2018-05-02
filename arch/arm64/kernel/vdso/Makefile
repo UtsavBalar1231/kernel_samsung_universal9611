@@ -20,7 +20,7 @@ ldflags-y := -shared -nostdlib -soname=linux-vdso.so.1  --hash-style=sysv \
 ccflags-y := -fno-stack-protector -ffixed-x18
 ccflags-y += -DDISABLE_BRANCH_PROFILING
 ccflags-y += $(call cc-option, -fno-whole-program)
-ccflags-y += $(DISABLE_LTO)
+ccflags-y += $(DISABLE_LTO) $(DISABLE_SCS)
 
 CFLAGS_REMOVE_vgettimeofday.o += $(CC_FLAGS_SCS)
 
