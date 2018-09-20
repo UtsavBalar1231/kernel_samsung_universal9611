@@ -1036,7 +1036,7 @@ struct coresight_device *coresight_register(struct coresight_desc *desc)
 	csdev = kzalloc(sizeof(*csdev), GFP_KERNEL);
 	if (!csdev) {
 		ret = -ENOMEM;
-		goto err_kzalloc_csdev;
+		goto err_out;
 	}
 
 	if (desc->type == CORESIGHT_DEV_TYPE_LINK ||
@@ -1052,7 +1052,7 @@ struct coresight_device *coresight_register(struct coresight_desc *desc)
 	refcnts = kcalloc(nr_refcnts, sizeof(*refcnts), GFP_KERNEL);
 	if (!refcnts) {
 		ret = -ENOMEM;
-		goto err_kzalloc_refcnts;
+		goto err_free_csdev;
 	}
 
 	csdev->refcnt = refcnts;
@@ -1065,7 +1065,7 @@ struct coresight_device *coresight_register(struct coresight_desc *desc)
 		conns = kcalloc(csdev->nr_outport, sizeof(*conns), GFP_KERNEL);
 		if (!conns) {
 			ret = -ENOMEM;
-			goto err_kzalloc_conns;
+			goto err_free_refcnts;
 		}
 
 		for (i = 0; i < csdev->nr_outport; i++) {
@@ -1092,7 +1092,11 @@ struct coresight_device *coresight_register(struct coresight_desc *desc)
 	ret = device_register(&csdev->dev);
 	if (ret) {
 		put_device(&csdev->dev);
-		goto err_kzalloc_csdev;
+		/*
+		 * All resources are free'd explicitly via
+		 * coresight_device_release(), triggered from put_device().
+		 */
+		goto err_out;
 	}
 
 	mutex_lock(&coresight_mutex);
@@ -1104,11 +1108,11 @@ struct coresight_device *coresight_register(struct coresight_desc *desc)
 
 	return csdev;
 
-err_kzalloc_conns:
+err_free_refcnts:
 	kfree(refcnts);
-err_kzalloc_refcnts:
+err_free_csdev:
 	kfree(csdev);
-err_kzalloc_csdev:
+err_out:
 	return ERR_PTR(ret);
 }
 EXPORT_SYMBOL_GPL(coresight_register);
