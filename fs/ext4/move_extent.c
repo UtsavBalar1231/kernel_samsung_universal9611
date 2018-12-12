@@ -603,11 +603,11 @@ ext4_move_extents(struct file *o_filp, struct file *d_filp, __u64 orig_blk,
 		return -EOPNOTSUPP;
 	}
 
-	if (ext4_encrypted_inode(orig_inode) && S_ISREG(orig_inode->i_mode)
+	if (IS_ENCRYPTED(orig_inode) && S_ISREG(orig_inode->i_mode)
 			&& !fscrypt_inline_encrypted(orig_inode))
 			return -EOPNOTSUPP;
 
-	if (ext4_encrypted_inode(donor_inode) && S_ISREG(donor_inode->i_mode)
+	if (IS_ENCRYPTED(donor_inode) && S_ISREG(donor_inode->i_mode)
 			&& !fscrypt_inline_encrypted(donor_inode))
 			return -EOPNOTSUPP;
 

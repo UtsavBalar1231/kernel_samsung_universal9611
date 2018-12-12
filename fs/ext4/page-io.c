@@ -479,8 +479,8 @@ int ext4_bio_write_page(struct ext4_io_submit *io,
 
 	bh = head = page_buffers(page);
 
-	if (ext4_encrypted_inode(inode) && S_ISREG(inode->i_mode) &&
-	    nr_to_submit && !fscrypt_inline_encrypted(inode)) {
+	if (IS_ENCRYPTED(inode) && S_ISREG(inode->i_mode) && nr_to_submit
+	    && !fscrypt_inline_encrypted(inode)) {
 		gfp_t gfp_flags = GFP_NOFS;
 
 		/*
