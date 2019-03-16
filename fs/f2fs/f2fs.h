@@ -3844,7 +3844,7 @@ static inline bool f2fs_force_buffered_io(struct inode *inode,
 	if (f2fs_post_read_required(inode) &&
 			!fscrypt_inline_encrypted(inode))
 		return true;
-	if (sbi->s_ndevs)
+	if (f2fs_is_multi_device(sbi))
 		return true;
 	/*
 	 * for blkzoned device, fallback direct IO to buffered IO, so
