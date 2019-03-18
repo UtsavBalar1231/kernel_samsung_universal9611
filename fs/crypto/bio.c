@@ -113,7 +113,7 @@ int fscrypt_zeroout_range(const struct inode *inode, pgoff_t lblk,
 		memset(page_address(ciphertext_page), 0, PAGE_SIZE);
 		ciphertext_page->mapping = inode->i_mapping;
 	} else {
-		ctx = fscrypt_get_ctx(inode, GFP_NOFS);
+		ctx = fscrypt_get_ctx(GFP_NOFS);
 		if (IS_ERR(ctx))
 			return PTR_ERR(ctx);
 
