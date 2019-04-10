@@ -136,6 +136,7 @@ extern int fscrypt_inherit_context(struct inode *, struct inode *,
 /* keyinfo.c */
 extern int fscrypt_get_encryption_info(struct inode *);
 extern void fscrypt_put_encryption_info(struct inode *);
+extern void fscrypt_free_inode(struct inode *);
 
 #ifdef CONFIG_FSCRYPT_SDP
 extern int fscrypt_get_encryption_key(struct inode *inode,
@@ -352,6 +353,10 @@ static inline int fscrypt_get_encryption_info(struct inode *inode)
 static inline void fscrypt_put_encryption_info(struct inode *inode)
 {
 	return;
+}
+
+static inline void fscrypt_free_inode(struct inode *inode)
+{
 }
 
  /* fname.c */
