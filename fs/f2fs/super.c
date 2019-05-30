@@ -321,7 +321,8 @@ void f2fs_get_fsck_stat(struct f2fs_sb_info *sbi)
 
 static inline void limit_reserve_root(struct f2fs_sb_info *sbi)
 {
-	block_t limit = sbi->user_block_count / 100;
+	block_t limit = min((sbi->user_block_count << 1) / 1000,
+			sbi->user_block_count - sbi->reserved_blocks);
 
 	/* limit is 1.0% */
 	if (test_opt(sbi, RESERVE_ROOT) &&
