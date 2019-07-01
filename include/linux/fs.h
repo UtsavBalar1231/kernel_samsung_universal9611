@@ -3443,4 +3443,7 @@ extern void inode_nohighmem(struct inode *inode);
 /* for Android P */
 #define AID_USE_ROOT_RESERVED KGIDT_INIT(5678)
 
+int vfs_ioc_setflags_prepare(struct inode *inode, unsigned int oldflags,
+			     unsigned int flags);
+
 #endif /* _LINUX_FS_H */
