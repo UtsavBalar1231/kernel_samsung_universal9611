@@ -554,26 +554,4 @@ fail_free_queue:
 fail:
 	return -ENOMEM;
 }
-module_init(fscrypt_init)
-
-/**
- * fscrypt_exit() - Shutdown the fs encryption system
- */
-static void __exit fscrypt_exit(void)
-{
-	fscrypt_destroy();
-
-	if (fscrypt_read_workqueue)
-		destroy_workqueue(fscrypt_read_workqueue);
-	kmem_cache_destroy(fscrypt_ctx_cachep);
-	kmem_cache_destroy(fscrypt_info_cachep);
-#ifdef CONFIG_FSCRYPT_SDP
-	sdp_crypto_exit();
-	fscrypt_sdp_release_sdp_info_cachep();
-#endif
-
-	fscrypt_essiv_cleanup();
-}
-module_exit(fscrypt_exit);
-
-MODULE_LICENSE("GPL");
+late_initcall(fscrypt_init)
