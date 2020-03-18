@@ -116,6 +116,7 @@ void selinux_avc_init(struct selinux_avc **avc);
 
 extern struct selinux_state selinux_state;
 
+#ifndef CONFIG_ASSISTED_SUPERUSER
 #ifdef CONFIG_SECURITY_SELINUX_DEVELOP
 static inline bool enforcing_enabled(struct selinux_state *state)
 {
@@ -130,6 +131,16 @@ static inline void enforcing_set(struct selinux_state *state, bool value)
 static inline bool enforcing_enabled(struct selinux_state *state)
 {
 	return true;
+}
+
+static inline void enforcing_set(struct selinux_state *state, bool value)
+{
+}
+#endif
+#else
+static inline bool enforcing_enabled(struct selinux_state *state)
+{
+        return false;
 }
 
 static inline void enforcing_set(struct selinux_state *state, bool value)
