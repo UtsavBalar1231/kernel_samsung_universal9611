@@ -1,4 +1,4 @@
-﻿#ifndef __SM5713_MUIC_H__
+#ifndef __SM5713_MUIC_H__
 #define __SM5713_MUIC_H__
 /*
  * Copyright (C) 2015 Samsung Electronics

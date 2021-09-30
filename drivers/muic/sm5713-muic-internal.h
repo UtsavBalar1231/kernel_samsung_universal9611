@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (C) 2010 Samsung Electronics
  * Thomas Ryu <smilesr.ryu@samsung.com>
  *
