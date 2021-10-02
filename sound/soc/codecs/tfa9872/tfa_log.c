@@ -291,7 +291,7 @@ static ssize_t tfa_data_maxx_show(struct device *dev,
 			snprintf(read_string,
 				FILESIZE_LOG, "%d", value);
 		else
-			snprintf(read_string,
+			scnprintf(read_string,
 				FILESIZE_LOG, "%s %d",
 				read_string, value);
 	}
@@ -350,7 +350,7 @@ static ssize_t tfa_data_maxt_show(struct device *dev,
 			snprintf(read_string,
 				FILESIZE_LOG, "%d", value);
 		else
-			snprintf(read_string,
+			scnprintf(read_string,
 				FILESIZE_LOG, "%s %d",
 				read_string, value);
 	}
@@ -409,7 +409,7 @@ static ssize_t tfa_count_overxmax_show(struct device *dev,
 			snprintf(read_string,
 				FILESIZE_LOG, "%d", value);
 		else
-			snprintf(read_string,
+			scnprintf(read_string,
 				FILESIZE_LOG, "%s %d",
 				read_string, value);
 	}
@@ -468,7 +468,7 @@ static ssize_t tfa_count_overtmax_show(struct device *dev,
 			snprintf(read_string,
 				FILESIZE_LOG, "%d", value);
 		else
-			snprintf(read_string,
+			scnprintf(read_string,
 				FILESIZE_LOG, "%s %d",
 				read_string, value);
 	}
@@ -528,7 +528,7 @@ static ssize_t tfa_data_show(struct device *dev,
 				snprintf(read_string,
 					FILESIZE_LOG, "%d", value[i]);
 			else
-				snprintf(read_string,
+				scnprintf(read_string,
 					FILESIZE_LOG, "%s %d",
 					read_string, value[i]);
 		}
@@ -652,7 +652,7 @@ static ssize_t tfa_log_store(struct device *dev,
 					FILESIZE_LOG, "%d",
 					blackbox[i].prev_value);
 			else
-				snprintf(read_string,
+				scnprintf(read_string,
 					FILESIZE_LOG, "%s %d",
 					read_string, blackbox[i].prev_value);
 		}
