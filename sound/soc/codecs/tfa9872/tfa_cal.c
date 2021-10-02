@@ -107,7 +107,7 @@ static ssize_t tfa_cal_rdc_show(struct device *dev,
 			snprintf(cal_done_string,
 				FILESIZE_RDC_CAL, "%d", value);
 		else
-			snprintf(cal_done_string,
+			scnprintf(cal_done_string,
 				FILESIZE_RDC_CAL, "%s %d",
 				cal_done_string, value);
 	}
@@ -176,7 +176,7 @@ static ssize_t tfa_cal_temp_show(struct device *dev,
 			snprintf(cal_done_string,
 				FILESIZE_TEMP_CAL, "%d", value);
 		else
-			snprintf(cal_done_string,
+			scnprintf(cal_done_string,
 				FILESIZE_TEMP_CAL, "%s %d",
 				cal_done_string, value);
 	}
@@ -289,7 +289,7 @@ static ssize_t tfa_cal_status_store(struct device *dev,
 			snprintf(cal_done_string,
 				FILESIZE_RDC_CAL, "%d", value);
 		else
-			snprintf(cal_done_string,
+			scnprintf(cal_done_string,
 				FILESIZE_RDC_CAL, "%s %d",
 				cal_done_string, value);
 
@@ -310,7 +310,7 @@ static ssize_t tfa_cal_status_store(struct device *dev,
 			snprintf(cal_done_string2,
 				FILESIZE_TEMP_CAL, "%d", value2);
 		else
-			snprintf(cal_done_string2,
+			scnprintf(cal_done_string2,
 				FILESIZE_TEMP_CAL, "%s %d",
 				cal_done_string2, value2);
 	}
