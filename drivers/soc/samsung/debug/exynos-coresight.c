@@ -581,7 +581,7 @@ static const struct of_device_id of_exynos_cs_matches[] __initconst= {
 	{},
 };
 
-static int exynos_cs_init_dt(void)
+static int __init exynos_cs_init_dt(void)
 {
 	struct device_node *np = NULL;
 	unsigned int offset, sj_offset, val, cs_reg_base;
