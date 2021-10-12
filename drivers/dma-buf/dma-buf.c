@@ -39,6 +39,9 @@
 #include <uapi/linux/dma-buf.h>
 #include <uapi/linux/magic.h>
 
+#include "dma-buf-container.h"
+#include "dma-buf-trace.h"
+
 static inline int is_dma_buf_file(struct file *);
 
 struct dma_buf_list {
@@ -83,6 +86,8 @@ static void dma_buf_release(struct dentry *dentry)
 	BUG_ON(dmabuf->cb_shared.active || dmabuf->cb_excl.active);
 
 	dmabuf->ops->release(dmabuf);
+
+	dmabuf_trace_free(dmabuf);
 
 	if (dmabuf->resv == (struct reservation_object *)&dmabuf[1])
 		reservation_object_fini(dmabuf->resv);
@@ -402,7 +407,19 @@ static long dma_buf_ioctl(struct file *file,
 	case DMA_BUF_SET_NAME_A:
 	case DMA_BUF_SET_NAME_B:
 		return dma_buf_set_name(dmabuf, (const char __user *)arg);
-
+#ifdef CONFIG_COMPAT
+	case DMA_BUF_COMPAT_IOCTL_MERGE:
+#endif
+	case DMA_BUF_IOCTL_MERGE:
+		return dma_buf_merge_ioctl(dmabuf, cmd, arg);
+	case DMA_BUF_IOCTL_CONTAINER_SET_MASK:
+		return dmabuf_container_set_mask_user(dmabuf, arg);
+	case DMA_BUF_IOCTL_CONTAINER_GET_MASK:
+		return dmabuf_container_get_mask_user(dmabuf, arg);
+	case DMA_BUF_IOCTL_TRACK:
+		return dmabuf_trace_track_buffer(dmabuf);
+	case DMA_BUF_IOCTL_UNTRACK:
+		return dmabuf_trace_untrack_buffer(dmabuf);
 	default:
 		return -ENOTTY;
 	}
@@ -593,6 +610,8 @@ struct dma_buf *dma_buf_export(const struct dma_buf_export_info *exp_info)
 	list_add(&dmabuf->list_node, &db_list.head);
 	mutex_unlock(&db_list.lock);
 
+	dmabuf_trace_alloc(dmabuf);
+
 	return dmabuf;
 
 err_dmabuf:
@@ -747,6 +766,76 @@ void dma_buf_detach(struct dma_buf *dmabuf, struct dma_buf_attachment *attach)
 	kfree(attach);
 }
 EXPORT_SYMBOL_GPL(dma_buf_detach);
+
+/**
+ * dma_buf_map_attachment_area - Returns the scatterlist table of
+ * the attachment mapped into _device_ address space.
+ * Is a wrapper for map_dma_buf_area() of the dma_buf_ops.
+ *
+ * @attach:	[in]	attachment whose scatterlist is to be returned
+ * @direction:	[in]	direction of DMA transfer
+ * @size:       [in]    the hint for the exporter
+ *
+ * Returns sg_table containing the scatterlist to be returned; returns ERR_PTR
+ * on error. May return -EINTR if it is interrupted by a signal.
+ *
+ * This passes the size as hint. The exporter can use this size to map or manage
+ * cache maintenance for DMA. However the exporter must ensure that scatterlist
+ * or manage device virtual address space even if pair of [un]map_dma_buf and
+ * [un]map_dma_buf_area doesn't match each other, that is, the sg_table from
+ * map_dma_buf_area could be relased by unmap_dma_buf or the sg_table from
+ * map_dma_buf could be released by unmap_dma_buf_area.
+ */
+struct sg_table *dma_buf_map_attachment_area(struct dma_buf_attachment *attach,
+					     enum dma_data_direction direction,
+					     size_t size)
+{
+	struct sg_table *sg_table;
+
+	if (!attach->dmabuf->ops->map_dma_buf_area)
+		return dma_buf_map_attachment(attach, direction);
+
+	might_sleep();
+
+	if (WARN_ON(!attach || !attach->dmabuf))
+		return ERR_PTR(-EINVAL);
+
+	sg_table = attach->dmabuf->ops->map_dma_buf_area(attach, direction,
+							 size);
+	if (!sg_table)
+		sg_table = ERR_PTR(-ENOMEM);
+
+	return sg_table;
+}
+EXPORT_SYMBOL_GPL(dma_buf_map_attachment_area);
+
+/**
+ * dma_buf_unmap_attachment_area - unmaps and decreases usecount of the buffer
+ * might deallocate the scatterlist associated by requested size.
+ * Is a wrapper for unmap_dma_buf_area() of dma_buf_ops.
+ *
+ * @attach:	[in]	attachment to unmap buffer from
+ * @sg_table:	[in]	scatterlist info of the buffer to unmap
+ * @direction:  [in]    direction of DMA transfer
+ * @size:       [in]    the hint for the exporter
+ */
+void dma_buf_unmap_attachment_area(struct dma_buf_attachment *attach,
+				   struct sg_table *sg_table,
+				   enum dma_data_direction direction,
+				   size_t size)
+{
+	if (!attach->dmabuf->ops->unmap_dma_buf_area)
+		return dma_buf_unmap_attachment(attach, sg_table, direction);
+
+	might_sleep();
+
+	if (WARN_ON(!attach || !attach->dmabuf || !sg_table))
+		return;
+
+	attach->dmabuf->ops->unmap_dma_buf_area(attach, sg_table,
+						   direction, size);
+}
+EXPORT_SYMBOL_GPL(dma_buf_unmap_attachment_area);
 
 /**
  * dma_buf_map_attachment - Returns the scatterlist table of the attachment;
@@ -1296,7 +1385,7 @@ static const struct file_operations dma_buf_debug_fops = {
 	.release        = single_release,
 };
 
-static struct dentry *dma_buf_debugfs_dir;
+struct dentry *dma_buf_debugfs_dir;
 
 static int dma_buf_init_debugfs(void)
 {

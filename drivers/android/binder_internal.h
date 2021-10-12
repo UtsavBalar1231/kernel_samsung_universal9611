@@ -117,6 +117,9 @@ DEFINE_SHOW_ATTRIBUTE(binder_transactions);
 int binder_transaction_log_show(struct seq_file *m, void *unused);
 DEFINE_SHOW_ATTRIBUTE(binder_transaction_log);
 
+int binder_count_show(struct seq_file *m, void *unused);
+DEFINE_SHOW_ATTRIBUTE(binder_count);
+
 struct binder_transaction_log_entry {
 	int debug_id;
 	int debug_id_done;
