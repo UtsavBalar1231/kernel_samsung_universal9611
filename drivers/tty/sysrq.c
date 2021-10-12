@@ -140,9 +140,12 @@ static void sysrq_handle_crash(int key)
 	/* release the RCU read lock before crashing */
 	rcu_read_unlock();
 
+#ifdef CONFIG_SEC_DEBUG
 	sec_debug_set_sysrq_crash(current);
+#endif
 	panic("sysrq triggered crash\n");
 }
+
 static struct sysrq_key_op sysrq_crash_op = {
 	.handler	= sysrq_handle_crash,
 	.help_msg	= "crash(c)",
