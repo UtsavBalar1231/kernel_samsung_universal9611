@@ -162,11 +162,11 @@ queueing:
 				push_len = (unsigned int)skb_network_header_len(skb2);
 			} else if (skb_headroom(skb2) > skb2->transport_header) {
 				struct tcphdr *tcph = tcp_hdr(skb2);
-				push_len = (unsigned int)skb_network_header_len(skb2) 
+				push_len = (unsigned int)skb_network_header_len(skb2)
 					   + (unsigned int)(tcph->doff * 4);
 			} else {
-				push_len = (unsigned int)skb2->data 
-					   - (unsigned int)skb_network_header(skb2);
+				push_len = (uintptr_t)skb2->data
+					   - (uintptr_t)skb_network_header(skb2);
 			}
 
 			if (unlikely(skb_headroom(skb2) < push_len)) {
