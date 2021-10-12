@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # HOME path
-HOME="/home/rohanhasabe8/cunt"
+HOME="/home/utsavbalar"
 # Kernel Output
 OUT_DIR="out"
 VERSION="WIP-0.0.e"
@@ -19,7 +19,7 @@ PATH=${HOME}/clang/bin:${HOME}/gcc-aarch64/bin:$PATH
 make ARCH=arm64 \
         O=${OUT_DIR} \
         ${DEVICE}_defconfig \
-        -j$(nproc --all)
+        -j8
 
 # Let's build
 START=$(date +"%s")
@@ -28,11 +28,11 @@ make ARCH=arm64 \
         O=${OUT_DIR} \
 	CC="ccache clang" \
         CROSS_COMPILE="aarch64-linux-android-" \
-	CLANG_TRIPLE="aarch64-linux-gnu-"
-        -j$(nproc --all)
+	CLANG_TRIPLE="aarch64-linux-gnu-" \
+        -j8
 
 # Import Anykernel3 folder
-cp -r ${HOME}/anykernel-exynos "$(pwd)"/anykernel
+cp -r ${HOME}/anykernel "$(pwd)"/anykernel
 
 cp ${OUT_DIR}/arch/arm64/boot/dts/exynos/exynos9610.dtb ./
 python scripts/mkdtboimg.py create ${OUT_DIR}/dtbo.img ${OUT_DIR}/arch/arm64/boot/dts/samsung/*.dtbo
@@ -61,5 +61,5 @@ rm ${OUT_DIR}/dtb
 rm ${OUT_DIR}/dtbo.img
 
 END=$(date +"%s")
-DIFF=$(( END - START))
+DIFF=$((END - START))
 echo -e '\033[01;32m' "Kernel compiled successfully in $((DIFF / 60)) minute(s) and $((DIFF % 60)) seconds" || exit
