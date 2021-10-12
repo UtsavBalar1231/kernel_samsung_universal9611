@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# HOME path
+HOME="/home/rohanhasabe8/cunt"
+# Kernel Output
+OUT_DIR="out"
+DEVICE="exynos9610-a51xx"
+
+make ARCH=arm64 \
+        O=${OUT_DIR} \
+        ${DEVICE}_defconfig \
+        -j"$(nproc --all)"
+
+mv ${OUT_DIR}/.config arch/arm64/configs/${DEVICE}_defconfig

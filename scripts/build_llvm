@@ -1,0 +1,60 @@
+#!/bin/bash
+
+# HOME path
+HOME="/home/rohanhasabe8/cunt"
+# Kernel Output
+OUT_DIR="out"
+VERSION="WIP-0.0.e"
+DEVICE="exynos9610-a51xx"
+DATE=$(date +"%d.%m.%y.%S")
+ZIPNAME=IMMENSITY-X-${DEVICE}-${VERSION}-${DATE}.zip
+
+export USE_CCACHE=1
+export PLATFORM_VERSION=11
+export ANDROID_MAJOR_VERSION=r
+
+# Set compiler PATH
+PATH=${HOME}/clang/bin:${HOME}/gcc-aarch64/bin:$PATH
+
+make ARCH=arm64 \
+        O=${OUT_DIR} \
+        ${DEVICE}_defconfig \
+        -j$(nproc --all)
+
+# Let's build
+START=$(date +"%s")
+
+make ARCH=arm64 \
+        O=${OUT_DIR} \
+	CC="ccache clang" \
+        CROSS_COMPILE="aarch64-linux-android-" \
+	CLANG_TRIPLE="aarch64-linux-gnu-" \
+        -j$(nproc --all)
+
+# Import Anykernel3 folder
+cp -r ${HOME}/anykernel-exynos "$(pwd)"/anykernel
+
+cp "$(pwd)"/${OUT_DIR}/arch/arm64/boot/Image "$(pwd)"/anykernel/
+cp "$(pwd)"/${OUT_DIR}/arch/arm64/boot/dtb_exynos.img "$(pwd)"/anykernel/dtb
+cp "$(pwd)"/${OUT_DIR}/arch/arm64/boot/dtbo_exynos.img "$(pwd)"/anykernel/dtbo.img
+
+cd anykernel/ || exit
+zip -r9 "${ZIPNAME}" ./*
+CHECKER=$(find ./ -maxdepth 1 -type f -name "${ZIPNAME}" -printf "%s\n")
+if (($((CHECKER / 1048576)) > 5)); then
+        curl --upload-file "${ZIPNAME}" https://transfer.sh/"${ZIPNAME}"
+else
+        echo -e '\033[01;31m' "kernel compilation unsuccesfull" || exit
+fi
+cd ../
+
+# Cleanup
+rm -fr anykernel/
+rm ${OUT_DIR}/.version
+rm ${OUT_DIR}/arch/arm64/boot/Image*
+rm ${OUT_DIR}/arch/arm64/boot/dts/dtb_*
+rm ${OUT_DIR}/arch/arm64/boot/dts/dtbo_*
+
+END=$(date +"%s")
+DIFF=$(( END - START))
+echo -e '\033[01;32m' "Kernel compiled successfully in $((DIFF / 60)) minute(s) and $((DIFF % 60)) seconds" || exit

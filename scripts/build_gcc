@@ -1,0 +1,74 @@
+#!/bin/bash
+
+# HOME path
+HOME="/home/rohanhasabe8/cunt"
+# Kernel Output
+OUT_DIR="out"
+VERSION="WIP-0.0.d"
+DEVICE="exynos9610-a51xx"
+DATE=$(date +"%d.%m.%y.%S")
+ZIPNAME=IMMENSITY-X-${DEVICE}-${VERSION}-${DATE}.zip
+
+export PLATFORM_VERSION=11
+export ANDROID_MAJOR_VERSION=r
+
+# Set compiler PATH
+PATH=${HOME}/gcc64/bin:${HOME}/gcc32/bin:$PATH
+
+make ARCH=arm64 \
+        O=${OUT_DIR} \
+        ${DEVICE}_defconfig \
+        -j$(nproc --all)
+
+# Enable GCC
+scripts/config --file ${OUT_DIR}/.config \
+        -d FORTIFY_SOURCE
+
+# Make olddefconfig
+cd ${OUT_DIR} || exit
+make O=${OUT_DIR} \
+        ARCH=arm64 \
+        olddefconfig
+cd ../
+
+# Let's build
+START=$(date +"%s")
+
+make ARCH=arm64 \
+        O=${OUT_DIR} \
+        CROSS_COMPILE="aarch64-elf-" \
+        CROSS_COMPILE_ARM32="arm-eabi-" \
+        -j$(nproc --all)
+
+# Import Anykernel3 folder
+cp -r ${HOME}/anykernel-exynos "$(pwd)"/anykernel
+
+cp ${OUT_DIR}/arch/arm64/boot/dts/exynos/exynos9610.dtb ./
+python scripts/mkdtboimg.py create ${OUT_DIR}/dtbo.img ${OUT_DIR}/arch/arm64/boot/dts/samsung/*.dtbo
+python scripts/mkdtboimg.py cfg_create ${OUT_DIR}/dtb dtbcfg/exynos9610.cfg --dtb-dir ${OUT_DIR}/arch/arm64/boot/dts/exynos/
+python scripts/mkdtboimg.py cfg_create ${OUT_DIR}/dtbo.img dtbcfg/a51.cfg --dtb-dir ${OUT_DIR}/arch/arm64/boot/dts/samsung/
+
+cp "$(pwd)"/${OUT_DIR}/arch/arm64/boot/Image "$(pwd)"/anykernel/
+cp "$(pwd)"/${OUT_DIR}/dtb "$(pwd)"/anykernel/
+cp "$(pwd)"/${OUT_DIR}/dtbo.img "$(pwd)"/anykernel/
+
+cd anykernel/ || exit
+zip -r9 "${ZIPNAME}" ./*
+CHECKER=$(find ./ -maxdepth 1 -type f -name "${ZIPNAME}" -printf "%s\n")
+if (($((CHECKER / 1048576)) > 5)); then
+        curl --upload-file "${ZIPNAME}" https://transfer.sh/"${ZIPNAME}"
+else
+        echo -e '\033[01;31m' "kernel compilation unsuccesfull" || exit
+fi
+cd ../
+
+# Cleanup
+rm -fr anykernel/
+rm ${OUT_DIR}/.version
+rm ${OUT_DIR}/arch/arm64/boot/Image
+rm ${OUT_DIR}/dtb
+rm ${OUT_DIR}/dtbo.img
+
+END=$(date +"%s")
+DIFF=$(( END - START))
+echo -e '\033[01;32m' "Kernel compiled successfully in $((DIFF / 60)) minute(s) and $((DIFF % 60)) seconds" || exit
