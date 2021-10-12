@@ -4,11 +4,12 @@
 HOME="/home/rohanhasabe8/cunt"
 # Kernel Output
 OUT_DIR="out"
-VERSION="WIP-0.0.d"
+VERSION="WIP-0.0.e"
 DEVICE="exynos9610-a51xx"
 DATE=$(date +"%d.%m.%y.%S")
 ZIPNAME=IMMENSITY-X-${DEVICE}-${VERSION}-${DATE}.zip
 
+export USE_CCACHE=1
 export PLATFORM_VERSION=11
 export ANDROID_MAJOR_VERSION=r
 
@@ -25,7 +26,7 @@ START=$(date +"%s")
 
 make ARCH=arm64 \
         O=${OUT_DIR} \
-	CC="clang" \
+	CC="ccache clang" \
         CROSS_COMPILE="aarch64-linux-android-" \
 	CLANG_TRIPLE="aarch64-linux-gnu-"
         -j$(nproc --all)
