@@ -176,7 +176,6 @@ void dump_backtrace_auto_summary(struct pt_regs *regs, struct task_struct *tsk)
 {
 	struct stackframe frame;
 	int skip = 0;
-	int cnt = 0;
 
 	pr_debug("%s(regs = %p tsk = %p)\n", __func__, regs, tsk);
 
@@ -208,17 +207,7 @@ void dump_backtrace_auto_summary(struct pt_regs *regs, struct task_struct *tsk)
 
 	pr_auto_once(2);
 	pr_auto(ASL2, "Call trace:\n");
-	while (1) {
-		unsigned long stack;
-		int ret;
-
-#ifdef CONFIG_SEC_DEBUG_LIMIT_BACKTRACE
-		if (MAX_UNWINDING_LOOP < cnt) {
-			pr_info("%s: Forcely break dump_backtrace to avoid infinity backtrace\n", __func__);
-			break;
-		}
-#endif
-
+	do {
 		/* skip until specified stack frame */
 		if (!skip) {
 			dump_backtrace_entry_auto_summary(frame.pc);
@@ -235,18 +224,7 @@ void dump_backtrace_auto_summary(struct pt_regs *regs, struct task_struct *tsk)
 			dump_backtrace_entry_auto_summary(regs->pc);
 			dbg_snapshot_save_log(raw_smp_processor_id(), regs->pc);
 		}
-		ret = unwind_frame(tsk, &frame);
-		if (ret < 0)
-			break;
-		if (in_entry_text(frame.pc)) {
-			stack = frame.fp - offsetof(struct pt_regs, stackframe);
-
-			if (on_accessible_stack(tsk, stack))
-				dump_mem("", "Exception stack", stack,
-					 stack + sizeof(struct pt_regs));
-		}
-		cnt++;
-	}
+	} while (!unwind_frame(tsk, &frame));
 
 	put_task_stack(tsk);
 }
