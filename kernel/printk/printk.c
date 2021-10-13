@@ -989,7 +989,8 @@ static ssize_t devkmsg_write(struct kiocb *iocb, struct iov_iter *from)
 			len -= endp - line;
 			line = endp;
 			if (strstr(line, "healthd") ||
-				strstr(line, "cacert"))
+				strstr(line, "SSP") ||
+				strstr(line, "sm5713"))
 				goto free;
 		}
 	}
