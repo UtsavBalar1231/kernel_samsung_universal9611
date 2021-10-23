@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # HOME path
-HOME="/home/rohanhasabe8/cunt"
+HOME="/home/utsavbalar"
 # Kernel Output
 OUT_DIR="out"
 DEVICE="exynos9610-a51xx"
@@ -9,6 +9,13 @@ DEVICE="exynos9610-a51xx"
 make ARCH=arm64 \
         O=${OUT_DIR} \
         ${DEVICE}_defconfig \
-        -j"$(nproc --all)"
+        -j$(nproc --all)
 
-mv ${OUT_DIR}/.config arch/arm64/configs/${DEVICE}_defconfig
+cp ${OUT_DIR}/.config arch/arm64/configs/${DEVICE}_defconfig
+
+make ARCH=arm64 \
+        O=${OUT_DIR} \
+        savedefconfig \
+        -j$(nproc --all)
+
+cp ${OUT_DIR}/defconfig arch/arm64/configs/a51_defconfig
