@@ -1738,6 +1738,15 @@
 				linux,phandle = <0x4b>;
 				phandle = <0x4b>;
 			};
+
+			ext_bin@6 {
+				status = "okay";
+				samsung,name = "APTV_AUDIO_SLSI.bin";
+				samsung,area = <0x1>;
+				samsung,offset = <0x4fac00>;
+				linux,phandle = <0x4c>;
+				phandle = <0x4c>;
+			};
 		};
 	};
 
@@ -1892,8 +1901,8 @@
 							regulator-always-on;
 							regulator-ramp-delay = <0x2ee0>;
 							regulator-initial-mode = <0x2>;
-							linux,phandle = <0x4c>;
-							phandle = <0x4c>;
+							linux,phandle = <0x4d>;
+							phandle = <0x4d>;
 						};
 
 						BUCK2 {
@@ -1903,8 +1912,8 @@
 							regulator-always-on;
 							regulator-ramp-delay = <0x2ee0>;
 							regulator-initial-mode = <0x1>;
-							linux,phandle = <0x4d>;
-							phandle = <0x4d>;
+							linux,phandle = <0x4e>;
+							phandle = <0x4e>;
 						};
 
 						BUCK3 {
@@ -1914,8 +1923,8 @@
 							regulator-always-on;
 							regulator-ramp-delay = <0x2ee0>;
 							regulator-initial-mode = <0x1>;
-							linux,phandle = <0x4e>;
-							phandle = <0x4e>;
+							linux,phandle = <0x4f>;
+							phandle = <0x4f>;
 						};
 
 						BUCK4 {
@@ -1925,8 +1934,8 @@
 							regulator-always-on;
 							regulator-ramp-delay = <0x2ee0>;
 							regulator-initial-mode = <0x2>;
-							linux,phandle = <0x4f>;
-							phandle = <0x4f>;
+							linux,phandle = <0x50>;
+							phandle = <0x50>;
 						};
 
 						BUCK5 {
@@ -1936,8 +1945,8 @@
 							regulator-always-on;
 							regulator-ramp-delay = <0x2ee0>;
 							regulator-initial-mode = <0x2>;
-							linux,phandle = <0x50>;
-							phandle = <0x50>;
+							linux,phandle = <0x51>;
+							phandle = <0x51>;
 						};
 
 						BUCK6 {
@@ -1947,8 +1956,8 @@
 							regulator-always-on;
 							regulator-ramp-delay = <0x2ee0>;
 							regulator-initial-mode = <0x2>;
-							linux,phandle = <0x51>;
-							phandle = <0x51>;
+							linux,phandle = <0x52>;
+							phandle = <0x52>;
 						};
 
 						BUCK7 {
@@ -1958,8 +1967,8 @@
 							regulator-always-on;
 							regulator-ramp-delay = <0x2ee0>;
 							regulator-initial-mode = <0x3>;
-							linux,phandle = <0x52>;
-							phandle = <0x52>;
+							linux,phandle = <0x53>;
+							phandle = <0x53>;
 						};
 
 						BUCK8 {
@@ -1969,8 +1978,8 @@
 							regulator-always-on;
 							regulator-ramp-delay = <0x2ee0>;
 							regulator-initial-mode = <0x3>;
-							linux,phandle = <0x53>;
-							phandle = <0x53>;
+							linux,phandle = <0x54>;
+							phandle = <0x54>;
 						};
 
 						BUCK9 {
@@ -1980,8 +1989,8 @@
 							regulator-always-on;
 							regulator-ramp-delay = <0x2ee0>;
 							regulator-initial-mode = <0x3>;
-							linux,phandle = <0x54>;
-							phandle = <0x54>;
+							linux,phandle = <0x55>;
+							phandle = <0x55>;
 						};
 
 						LDO1 {
@@ -1991,8 +2000,8 @@
 							regulator-always-on;
 							regulator-ramp-delay = <0x2ee0>;
 							regulator-initial-mode = <0x3>;
-							linux,phandle = <0x55>;
-							phandle = <0x55>;
+							linux,phandle = <0x56>;
+							phandle = <0x56>;
 						};
 
 						LDO2 {
@@ -2000,8 +2009,8 @@
 							regulator-min-microvolt = <0x1b7740>;
 							regulator-max-microvolt = <0x337f98>;
 							regulator-ramp-delay = <0x2ee0>;
-							linux,phandle = <0x56>;
-							phandle = <0x56>;
+							linux,phandle = <0x57>;
+							phandle = <0x57>;
 						};
 
 						LDO3 {
@@ -2011,8 +2020,8 @@
 							regulator-always-on;
 							regulator-ramp-delay = <0x2ee0>;
 							regulator-initial-mode = <0x3>;
-							linux,phandle = <0x57>;
-							phandle = <0x57>;
+							linux,phandle = <0x58>;
+							phandle = <0x58>;
 						};
 
 						LDO4 {
@@ -2022,8 +2031,8 @@
 							regulator-always-on;
 							regulator-ramp-delay = <0x2ee0>;
 							regulator-initial-mode = <0x1>;
-							linux,phandle = <0x58>;
-							phandle = <0x58>;
+							linux,phandle = <0x59>;
+							phandle = <0x59>;
 						};
 
 						LDO5 {
@@ -2033,8 +2042,8 @@
 							regulator-always-on;
 							regulator-ramp-delay = <0x2ee0>;
 							regulator-initial-mode = <0x1>;
-							linux,phandle = <0x59>;
-							phandle = <0x59>;
+							linux,phandle = <0x5a>;
+							phandle = <0x5a>;
 						};
 
 						LDO6 {
@@ -2044,8 +2053,8 @@
 							regulator-always-on;
 							regulator-ramp-delay = <0x2ee0>;
 							regulator-initial-mode = <0x1>;
-							linux,phandle = <0x5a>;
-							phandle = <0x5a>;
+							linux,phandle = <0x5b>;
+							phandle = <0x5b>;
 						};
 
 						LDO7 {
@@ -2055,8 +2064,8 @@
 							regulator-always-on;
 							regulator-ramp-delay = <0x2ee0>;
 							regulator-initial-mode = <0x1>;
-							linux,phandle = <0x5b>;
-							phandle = <0x5b>;
+							linux,phandle = <0x5c>;
+							phandle = <0x5c>;
 						};
 
 						LDO8 {
@@ -2066,8 +2075,8 @@
 							regulator-always-on;
 							regulator-ramp-delay = <0x2ee0>;
 							regulator-initial-mode = <0x1>;
-							linux,phandle = <0x5c>;
-							phandle = <0x5c>;
+							linux,phandle = <0x5d>;
+							phandle = <0x5d>;
 						};
 
 						LDO9 {
@@ -2077,8 +2086,8 @@
 							regulator-always-on;
 							regulator-ramp-delay = <0x2ee0>;
 							regulator-initial-mode = <0x1>;
-							linux,phandle = <0x5d>;
-							phandle = <0x5d>;
+							linux,phandle = <0x5e>;
+							phandle = <0x5e>;
 						};
 
 						LDO10 {
@@ -2088,8 +2097,8 @@
 							regulator-always-on;
 							regulator-ramp-delay = <0x2ee0>;
 							regulator-initial-mode = <0x1>;
-							linux,phandle = <0x5e>;
-							phandle = <0x5e>;
+							linux,phandle = <0x5f>;
+							phandle = <0x5f>;
 						};
 
 						LDO11 {
@@ -2099,8 +2108,8 @@
 							regulator-always-on;
 							regulator-ramp-delay = <0x2ee0>;
 							regulator-initial-mode = <0x3>;
-							linux,phandle = <0x5f>;
-							phandle = <0x5f>;
+							linux,phandle = <0x60>;
+							phandle = <0x60>;
 						};
 
 						LDO12 {
@@ -2109,8 +2118,8 @@
 							regulator-max-microvolt = <0x13d620>;
 							regulator-ramp-delay = <0x2ee0>;
 							regulator-initial-mode = <0x3>;
-							linux,phandle = <0x60>;
-							phandle = <0x60>;
+							linux,phandle = <0x61>;
+							phandle = <0x61>;
 						};
 
 						LDO13 {
@@ -2119,8 +2128,8 @@
 							regulator-max-microvolt = <0x1dc130>;
 							regulator-ramp-delay = <0x2ee0>;
 							regulator-initial-mode = <0x3>;
-							linux,phandle = <0x61>;
-							phandle = <0x61>;
+							linux,phandle = <0x62>;
+							phandle = <0x62>;
 						};
 
 						LDO14 {
@@ -2129,8 +2138,8 @@
 							regulator-max-microvolt = <0x337f98>;
 							regulator-ramp-delay = <0x2ee0>;
 							regulator-initial-mode = <0x3>;
-							linux,phandle = <0x62>;
-							phandle = <0x62>;
+							linux,phandle = <0x63>;
+							phandle = <0x63>;
 						};
 
 						LDO33 {
@@ -2138,8 +2147,8 @@
 							regulator-min-microvolt = <0x1b7740>;
 							regulator-max-microvolt = <0x1b7740>;
 							regulator-initial-mode = <0x3>;
-							linux,phandle = <0x63>;
-							phandle = <0x63>;
+							linux,phandle = <0x64>;
+							phandle = <0x64>;
 						};
 
 						LDO34 {
@@ -2147,8 +2156,8 @@
 							regulator-min-microvolt = <0x1b7740>;
 							regulator-max-microvolt = <0x337f98>;
 							regulator-ramp-delay = <0x2ee0>;
-							linux,phandle = <0x64>;
-							phandle = <0x64>;
+							linux,phandle = <0x65>;
+							phandle = <0x65>;
 						};
 
 						LDO35 {
@@ -2156,8 +2165,8 @@
 							regulator-min-microvolt = <0x1b7740>;
 							regulator-max-microvolt = <0x337f98>;
 							regulator-ramp-delay = <0x2ee0>;
-							linux,phandle = <0x65>;
-							phandle = <0x65>;
+							linux,phandle = <0x66>;
+							phandle = <0x66>;
 						};
 
 						LDO36 {
@@ -2167,8 +2176,8 @@
 							regulator-always-on;
 							regulator-ramp-delay = <0x2ee0>;
 							regulator-initial-mode = <0x1>;
-							linux,phandle = <0x66>;
-							phandle = <0x66>;
+							linux,phandle = <0x67>;
+							phandle = <0x67>;
 						};
 
 						LDO37 {
@@ -2176,8 +2185,8 @@
 							regulator-min-microvolt = <0x2ab980>;
 							regulator-max-microvolt = <0x2ab980>;
 							regulator-ramp-delay = <0x2ee0>;
-							linux,phandle = <0x67>;
-							phandle = <0x67>;
+							linux,phandle = <0x68>;
+							phandle = <0x68>;
 						};
 
 						LDO38 {
@@ -2185,8 +2194,8 @@
 							regulator-min-microvolt = <0x325aa0>;
 							regulator-max-microvolt = <0x325aa0>;
 							regulator-ramp-delay = <0x2ee0>;
-							linux,phandle = <0x68>;
-							phandle = <0x68>;
+							linux,phandle = <0x69>;
+							phandle = <0x69>;
 						};
 
 						LDO39 {
@@ -2194,8 +2203,8 @@
 							regulator-min-microvolt = <0x1b7740>;
 							regulator-max-microvolt = <0x1b7740>;
 							regulator-initial-mode = <0x3>;
-							linux,phandle = <0x69>;
-							phandle = <0x69>;
+							linux,phandle = <0x6a>;
+							phandle = <0x6a>;
 						};
 
 						LDO40 {
@@ -2213,8 +2222,8 @@
 							regulator-min-microvolt = <0x1b7740>;
 							regulator-max-microvolt = <0x337f98>;
 							regulator-ramp-delay = <0x2ee0>;
-							linux,phandle = <0x6a>;
-							phandle = <0x6a>;
+							linux,phandle = <0x6b>;
+							phandle = <0x6b>;
 						};
 
 						LDO42 {
@@ -2235,8 +2244,8 @@
 							regulator-always-on;
 							regulator-ramp-delay = <0x2ee0>;
 							regulator-initial-mode = <0x1>;
-							linux,phandle = <0x6b>;
-							phandle = <0x6b>;
+							linux,phandle = <0x6c>;
+							phandle = <0x6c>;
 						};
 
 						LDO44 {
@@ -2244,8 +2253,8 @@
 							regulator-min-microvolt = <0x124f80>;
 							regulator-max-microvolt = <0x124f80>;
 							regulator-ramp-delay = <0x2ee0>;
-							linux,phandle = <0x6c>;
-							phandle = <0x6c>;
+							linux,phandle = <0x6d>;
+							phandle = <0x6d>;
 						};
 					};
 				};
@@ -2286,8 +2295,8 @@
 				mcu,id = <0x0>;
 				interrupts = <0x0 0x28 0x0>;
 				mcu,irq_affinity_mask = <0x3>;
-				linux,phandle = <0x6d>;
-				phandle = <0x6d>;
+				linux,phandle = <0x6e>;
+				phandle = <0x6e>;
 			};
 
 			mif_pdata {
@@ -2380,8 +2389,8 @@
 				samsung,i2c-max-bus-freq = <0x61a80>;
 				#address-cells = <0x1>;
 				#size-cells = <0x0>;
-				linux,phandle = <0x6e>;
-				phandle = <0x6e>;
+				linux,phandle = <0x6f>;
+				phandle = <0x6f>;
 
 				mms_ts@48 {
 					compatible = "melfas,mms_ts";
@@ -2423,8 +2432,8 @@
 				regulator-max-microvolt = <0x401640>;
 				regulator-boot-on;
 				regulator-always-on;
-				linux,phandle = <0x6f>;
-				phandle = <0x6f>;
+				linux,phandle = <0x70>;
+				phandle = <0x70>;
 			};
 
 			dwmmc2@13550000 {
@@ -3430,8 +3439,8 @@
 				pinctrl-0 = <0x25>;
 				support_pd_role_swap;
 				usbpd,usbpd_int = <0xffffffff 0x3 0x0>;
-				linux,phandle = <0x70>;
-				phandle = <0x70>;
+				linux,phandle = <0x71>;
+				phandle = <0x71>;
 			};
 		};
 	};
@@ -3477,56 +3486,56 @@
 						regulator-name = "CAM_VLDO1";
 						regulator-min-microvolt = <0x10c8e0>;
 						regulator-max-microvolt = <0x10c8e0>;
-						linux,phandle = <0x71>;
-						phandle = <0x71>;
+						linux,phandle = <0x72>;
+						phandle = <0x72>;
 					};
 
 					s2mpb03-ldo2 {
 						regulator-name = "CAM_VLDO2";
 						regulator-min-microvolt = <0x100590>;
 						regulator-max-microvolt = <0x100590>;
-						linux,phandle = <0x72>;
-						phandle = <0x72>;
+						linux,phandle = <0x73>;
+						phandle = <0x73>;
 					};
 
 					s2mpb03-ldo3 {
 						regulator-name = "CAM_VLDO3";
 						regulator-min-microvolt = <0x1b7740>;
 						regulator-max-microvolt = <0x1b7740>;
-						linux,phandle = <0x73>;
-						phandle = <0x73>;
+						linux,phandle = <0x74>;
+						phandle = <0x74>;
 					};
 
 					s2mpb03-ldo4 {
 						regulator-name = "CAM_VLDO4";
 						regulator-min-microvolt = <0x10c8e0>;
 						regulator-max-microvolt = <0x10c8e0>;
-						linux,phandle = <0x74>;
-						phandle = <0x74>;
+						linux,phandle = <0x75>;
+						phandle = <0x75>;
 					};
 
 					s2mpb03-ldo5 {
 						regulator-name = "CAM_VLDO5";
 						regulator-min-microvolt = <0x2c4020>;
 						regulator-max-microvolt = <0x2c4020>;
-						linux,phandle = <0x75>;
-						phandle = <0x75>;
+						linux,phandle = <0x76>;
+						phandle = <0x76>;
 					};
 
 					s2mpb03-ldo6 {
 						regulator-name = "CAM_VLDO6";
 						regulator-min-microvolt = <0x2c4020>;
 						regulator-max-microvolt = <0x2c4020>;
-						linux,phandle = <0x76>;
-						phandle = <0x76>;
+						linux,phandle = <0x77>;
+						phandle = <0x77>;
 					};
 
 					s2mpb03-ldo7 {
 						regulator-name = "CAM_VLDO7";
 						regulator-min-microvolt = <0x2ab980>;
 						regulator-max-microvolt = <0x2ab980>;
-						linux,phandle = <0x77>;
-						phandle = <0x77>;
+						linux,phandle = <0x78>;
+						phandle = <0x78>;
 					};
 				};
 			};
@@ -4049,8 +4058,8 @@
 				samsung,pin-val = <0x0>;
 				samsung,pin-con-pdn = <0x3>;
 				samsung,pin-pud-pdn = <0x0>;
-				linux,phandle = <0x78>;
-				phandle = <0x78>;
+				linux,phandle = <0x79>;
+				phandle = <0x79>;
 			};
 
 			nfc-check {
@@ -4789,8 +4798,8 @@
 				samsung,pin-function = <0x1>;
 				samsung,pin-pud = <0x0>;
 				samsung,pin-val = <0x1>;
-				linux,phandle = <0x79>;
-				phandle = <0x79>;
+				linux,phandle = <0x7a>;
+				phandle = <0x7a>;
 			};
 		};
 	};
@@ -4815,6 +4824,7 @@
 		ext_bin_2 = "/fragment@15/__overlay__/ext_bin@2";
 		ext_bin_4 = "/fragment@15/__overlay__/ext_bin@4";
 		ext_bin_5 = "/fragment@15/__overlay__/ext_bin@5";
+		ext_bin_6 = "/fragment@15/__overlay__/ext_bin@6";
 		rt5510_amp = "/fragment@16/__overlay__/rt5510@34";
 		rt5665 = "/fragment@17/__overlay__/rt5665@1b";
 		b1_reg = "/fragment@model/__overlay__/speedy@11a10000/s2mpu09mfd@00/regulators/BUCK1";
