@@ -18,8 +18,8 @@ steps:
         from_secret: ci_channel_id
       BOT_API_KEY:
         from_secret: bot_api_key
-      TYPE: "REL-0.1.a"
-      DEVICE: exynos9610-a51xx
+      TYPE: "REL-0.1.k"
+      DEVICE: a51
       KBUILD_BUILD_USER: UtsavTheCunt
       KBUILD_BUILD_HOST: CuntsSpace
     commands:
