@@ -361,9 +361,10 @@ found:
 	if (err && err != -ENOENT)
 		goto out;
 
-	lower_dentry = lookup_one_len_unlocked(dentry->d_name.name,
-			lower_dir_dentry, dentry->d_name.len);
-	if (unlikely(IS_ERR(lower_dentry))) {
+	/* get a (very likely) new negative dentry */
+	lower_dentry = lookup_one_len_unlocked(name->name,
+					       lower_dir_dentry, name->len);
+	if (IS_ERR(lower_dentry)) {
 		err = PTR_ERR(lower_dentry);
 		goto out;
 	}

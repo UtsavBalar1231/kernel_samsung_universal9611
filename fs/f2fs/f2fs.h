@@ -24,7 +24,6 @@
 #include <linux/quotaops.h>
 #include <crypto/hash.h>
 #include <linux/overflow.h>
-#include <linux/android_aid.h>
 #include <linux/ctype.h>
 #include "../mount.h"
 
