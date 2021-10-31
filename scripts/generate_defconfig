@@ -4,18 +4,18 @@
 HOME="/home/utsavbalar"
 # Kernel Output
 OUT_DIR="out"
-DEVICE="exynos9610-a51xx"
+DEVICE="a51"
 
 make ARCH=arm64 \
         O=${OUT_DIR} \
         ${DEVICE}_defconfig \
         -j$(nproc --all)
 
-cp ${OUT_DIR}/.config arch/arm64/configs/${DEVICE}_defconfig
+cp ${OUT_DIR}/.config arch/arm64/configs/exynos9610-a51xx_defconfig
 
 make ARCH=arm64 \
         O=${OUT_DIR} \
         savedefconfig \
         -j$(nproc --all)
 
-cp ${OUT_DIR}/defconfig arch/arm64/configs/a51_defconfig
+cp ${OUT_DIR}/defconfig arch/arm64/configs/${DEVICE}_defconfig
