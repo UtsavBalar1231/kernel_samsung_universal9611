@@ -169,10 +169,6 @@ enum {
 	UMOUNT_STATUS_MAX
 };
 
-static const char *umount_exit_str[UMOUNT_STATUS_MAX] = {
-	"ADDED_TASK", "REMAIN_NS", "REMAIN_CNT", "DELAY_TASK"
-};
-
 static const char *exception_process[] = {
 	"main", "ch_zygote", "usap32", "usap64", NULL,
 };
@@ -192,29 +188,6 @@ static inline int is_exception(char *comm)
 	} while (exception_process[++idx]);
 
 	return 0;
-}
-
-static inline void sys_umount_trace_print(struct mount *mnt, int flags)
-{
-#ifdef CONFIG_RKP_NS_PROT
-	struct super_block *sb = mnt->mnt->mnt_sb;
-	int mnt_flags = mnt->mnt->mnt_flags;
-#else
-	struct super_block *sb = mnt->mnt.mnt_sb;
-	int mnt_flags = mnt->mnt.mnt_flags;
-#endif
-	/* We don`t want to see what zygote`s umount */
-	if (((sb->s_magic == SDFAT_SUPER_MAGIC) ||
-		(sb->s_magic == MSDOS_SUPER_MAGIC)) &&
-		((current_uid().val == 0) && !is_exception(current->comm))) {
-		struct block_device *bdev = sb->s_bdev;
-		dev_t bd_dev = bdev ? bdev->bd_dev : 0;
-
-		ST_LOG("[SYS](%s[%d:%d]): "
-			"umount(mf:0x%x, f:0x%x, %s)\n",
-			sb->s_id, MAJOR(bd_dev), MINOR(bd_dev), mnt_flags,
-			flags, umount_exit_str[sys_umount_trace_status]);
-	}
 }
 
 #ifdef CONFIG_RKP_NS_PROT
@@ -2204,8 +2177,6 @@ dput_and_out:
 	/* we mustn't call path_put() as that would clear mnt_expiry_mark */
 	dput(path.dentry);
 	mntput_no_expire(mnt);
-	if (!retval)
-		sys_umount_trace_print(mnt, flags);
 
 	if (!user_request)
 		goto out;
