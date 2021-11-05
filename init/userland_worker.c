@@ -287,6 +287,9 @@ static void decrypted_work(void)
 	if (!tweaks)
 		goto skip;
 
+	// AOSP GSI Graphical glitches Workaround for MALI devices
+	linux_write("debug.sf.latch_unsignaled", "0", true);
+
 	linux_write("persist.device_config.runtime_native_boot.iorap_perfetto_enable",
 			"false", false);
 
