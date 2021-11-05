@@ -263,12 +263,6 @@ static void encrypted_work(void)
 	first_command_retry();
 
 	linux_write("ro.iorapd.enable", "false", true);
-
-	linux_write("pixel.oslo.allowed_override", "1", false);
-
-	linux_write("persist.vendor.radio.multisim_swtich_support", "true", false);
-
-	linux_write("ro.input.video_enabled", "false", true);
 }
 
 static void decrypted_work(void)
@@ -283,9 +277,6 @@ static void decrypted_work(void)
 		msleep(LONG_DELAY);
 		pr_info("Fs decrypted!");
 	}
-
-	linux_sh("/system/bin/settings put system peak_refresh_rate 90");
-	linux_sh("/system/bin/settings put system min_refresh_rate 90.0");
 
 	// Wait for RCU grace period to end for the files to sync
 	rcu_barrier();
@@ -379,7 +370,6 @@ static void decrypted_work(void)
 	kfree(tweaks);
 
 skip:
-	linux_sh("/system/bin/stop vendor.input.classifier-1-0");
 	linux_sh("/system/bin/stop statsd");
 }
 
