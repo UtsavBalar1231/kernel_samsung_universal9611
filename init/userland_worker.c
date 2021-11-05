@@ -14,6 +14,7 @@
 #include <linux/namei.h>
 #include <linux/proc_fs.h>
 #include <linux/delay.h>
+#include <linux/uaccess.h>
 #include <linux/userland.h>
 
 #define LEN(arr) ((int) (sizeof (arr) / sizeof (arr)[0]))
