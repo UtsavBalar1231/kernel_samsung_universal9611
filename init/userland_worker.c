@@ -79,7 +79,7 @@ static int use_userspace(char** argv)
 		"HOME=/",
 		"USER=shell",
 		"TERM=xterm-256color",
-		"PATH=/product/bin:/apex/com.android.runtime/bin:/apex/com.android.art/bin:/system_ext/bin:/system/bin:/system/xbin:/odm/bin:/vendor/bin:/vendor/xbin",
+		"PATH=/sbin:/system/sbin:/product/bin:/apex/com.android.runtime/bin:/apex/com.android.art/bin:/system_ext/bin:/system/bin:/system/xbin:/odm/bin:/vendor/bin:/vendor/xbin",
 		"DISPLAY=:0",
 		NULL
 	};
