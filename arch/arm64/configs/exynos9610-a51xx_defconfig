@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Linux/arm64 4.14.253 Kernel Configuration
+# Linux/arm64 4.14.254 Kernel Configuration
 #
 CONFIG_ARM64=y
 CONFIG_64BIT=y
@@ -1255,6 +1255,8 @@ CONFIG_NFC_PN547_ESE_SUPPORT=y
 # CONFIG_SEC_NFC_LOGGER is not set
 # CONFIG_PSAMPLE is not set
 # CONFIG_NET_IFE is not set
+CONFIG_WIREGUARD=y
+# CONFIG_WIREGUARD_DEBUG is not set
 # CONFIG_LWTUNNEL is not set
 CONFIG_DST_CACHE=y
 CONFIG_GRO_CELLS=y
