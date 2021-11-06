@@ -385,11 +385,31 @@ static int sec_bat_get_wireless_current(struct sec_battery_info *battery, int in
 	return incurr;
 }
 
+static int sec_bat_get_icl_by_lcp(struct lcp_siop *table, int siop, int input_voltage, int input_current)
+{
+	int i;
+
+	if ((siop >= 100) || (input_voltage < SEC_INPUT_VOLTAGE_5V))
+		return input_current;
+
+	for (i = 0; i < table->size; i++) {
+		if (table->data[i].siop == siop) {
+			int icl = (table->data[i].lcp / input_voltage);
+
+			pr_info("%s: siop=%d, lcp=%d, icl=%d, iv=%d, ic=%d\n",
+				__func__, siop, table->data[i].lcp, icl, input_voltage, input_current);
+			return (icl < input_current) ? icl : input_current;
+		}
+	}
+
+	return input_current;
+}
+
 static void sec_bat_get_charging_current_by_siop(struct sec_battery_info *battery,
 		int *input_current, int *charging_current) {
 
 	if (battery->siop_level < 100) {
-		int max_charging_current;
+		int max_charging_current, input_voltage;
 
 		if (is_wireless_type(battery->cable_type)) {
 			max_charging_current = 1000; /* 1 step(70) */
@@ -401,6 +421,9 @@ static void sec_bat_get_charging_current_by_siop(struct sec_battery_info *batter
 		} else {
 			max_charging_current = 1800; /* 1 step(70) */
 		}
+
+		/* set input voltage */
+		input_voltage = battery->input_voltage;
 
 		/* do forced set charging current */
 		if (*charging_current > max_charging_current)
@@ -438,6 +461,9 @@ static void sec_bat_get_charging_current_by_siop(struct sec_battery_info *batter
 				*input_current = battery->pdata->siop_hv_input_limit_current_2nd;
 #endif
 		} else {
+			if (battery->wire_status == SEC_BATTERY_CABLE_HV_TA_CHG_LIMIT)
+				input_voltage = SEC_INPUT_VOLTAGE_5V;
+
 			if (battery->siop_level == 20 && battery->pdata->input_current_by_siop_20 > 0) {
 				if (*input_current > battery->pdata->input_current_by_siop_20)
 					*input_current = battery->pdata->input_current_by_siop_20;
@@ -449,6 +475,9 @@ static void sec_bat_get_charging_current_by_siop(struct sec_battery_info *batter
 					*input_current = battery->pdata->siop_hv_input_limit_current_2nd;
 			} 
 		}
+
+		*input_current = sec_bat_get_icl_by_lcp(&battery->pdata->lcp_table,
+			battery->siop_level, input_voltage, *input_current);
 	}
 
 	pr_info("%s: incurr(%d), chgcurr(%d)\n", __func__, *input_current, *charging_current);
