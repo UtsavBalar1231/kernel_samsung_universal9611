@@ -412,6 +412,8 @@ source "net/nfc/Kconfig"
 source "net/psample/Kconfig"
 source "net/ife/Kconfig"
 
+source "net/wireguard/Kconfig"
+
 config LWTUNNEL
 	bool "Network light weight tunnels"
 	---help---
