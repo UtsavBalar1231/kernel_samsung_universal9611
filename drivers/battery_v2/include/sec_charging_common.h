@@ -815,6 +815,16 @@ struct sec_wireless_rx_power_info {
 	unsigned int rx_power;
 };
 
+struct lcp_data {
+	unsigned int siop;
+	unsigned int lcp; /* limit charging power */
+};
+
+struct lcp_siop {
+	struct lcp_data *data;
+	unsigned int size;
+};
+
 #define sec_wireless_rx_power_info_t \
 	struct sec_wireless_rx_power_info
 
@@ -1140,7 +1150,9 @@ struct sec_battery_platform_data {
 
 	/* set current in some siop_level case */
 	int input_current_by_siop_20;
-	
+
+	struct lcp_siop lcp_table;
+
 	int siop_wireless_input_limit_current;
 	int siop_wireless_charging_limit_current;
 	int siop_hv_wireless_input_limit_current;
