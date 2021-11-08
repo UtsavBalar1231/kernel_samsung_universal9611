@@ -54,6 +54,9 @@
 #include <asm/ptrace.h>
 #include <asm/irq_regs.h>
 
+#include <linux/notifier.h>
+#include <linux/sec_debug.h>
+
 /* Whether we react on sysrq keys or just ignore them */
 static int __read_mostly sysrq_enabled = CONFIG_MAGIC_SYSRQ_DEFAULT_ENABLE;
 static bool __read_mostly sysrq_always_enabled;
@@ -137,6 +140,7 @@ static void sysrq_handle_crash(int key)
 	/* release the RCU read lock before crashing */
 	rcu_read_unlock();
 
+	sec_debug_set_sysrq_crash(current);
 	panic("sysrq triggered crash\n");
 }
 static struct sysrq_key_op sysrq_crash_op = {
@@ -291,6 +295,8 @@ static struct sysrq_key_op sysrq_showstate_op = {
 static void sysrq_handle_showstate_blocked(int key)
 {
 	show_state_filter(TASK_UNINTERRUPTIBLE);
+	show_mem(0, NULL);
+	dump_tasks(NULL, NULL);
 }
 static struct sysrq_key_op sysrq_showstate_blocked_op = {
 	.handler	= sysrq_handle_showstate_blocked,
