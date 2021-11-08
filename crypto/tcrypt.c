@@ -75,8 +75,8 @@ static char *check[] = {
 	"cast6", "arc4", "michael_mic", "deflate", "crc32c", "tea", "xtea",
 	"khazad", "wp512", "wp384", "wp256", "tnepres", "xeta",  "fcrypt",
 	"camellia", "seed", "salsa20", "rmd128", "rmd160", "rmd256", "rmd320",
-	"lzo", "cts", "zlib", "sha3-224", "sha3-256", "sha3-384", "sha3-512",
-	NULL
+	"lzo", "lzo-rle", "cts", "zlib", "sha3-224", "sha3-256", "sha3-384",
+	"sha3-512", NULL
 };
 
 struct tcrypt_result {
@@ -1610,6 +1610,16 @@ static int do_test(const char *alg, u32 type, u32 mask, int m)
 				  speed_template_32);
 		break;
 
+	case 219:
+		test_cipher_speed("adiantum(xchacha12,aes)", ENCRYPT, sec, NULL,
+				  0, speed_template_32);
+		test_cipher_speed("adiantum(xchacha12,aes)", DECRYPT, sec, NULL,
+				  0, speed_template_32);
+		test_cipher_speed("adiantum(xchacha20,aes)", ENCRYPT, sec, NULL,
+				  0, speed_template_32);
+		test_cipher_speed("adiantum(xchacha20,aes)", DECRYPT, sec, NULL,
+				  0, speed_template_32);
+		break;
 
 	case 300:
 		if (alg) {
