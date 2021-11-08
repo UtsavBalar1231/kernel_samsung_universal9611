@@ -39,6 +39,29 @@
 
 #include "internal.h"
 
+static atomic_long_t nr_vmalloc_pages;
+
+static int vmalloc_size_notifier(struct notifier_block *nb,
+					unsigned long action, void *data)
+{
+	struct seq_file *s;
+
+	s = (struct seq_file *)data;
+	if (s != NULL)
+		seq_printf(s, "VmallocAPIsize: %8lu kB\n",
+			   atomic_long_read(&nr_vmalloc_pages)
+				 << (PAGE_SHIFT - 10));
+	else
+		pr_cont("VmallocAPIsize:%lukB ",
+			atomic_long_read(&nr_vmalloc_pages)
+				<< (PAGE_SHIFT - 10));
+	return 0;
+}
+
+static struct notifier_block vmalloc_size_nb = {
+	.notifier_call = vmalloc_size_notifier,
+};
+
 struct vfree_deferred {
 	struct llist_head list;
 	struct work_struct wq;
@@ -141,8 +164,14 @@ static int vmap_pte_range(pmd_t *pmd, unsigned long addr,
 	 * nr is a running index into the array which helps higher level
 	 * callers keep track of where we're up to.
 	 */
-
+#ifdef CONFIG_UH_RKP
+	unsigned long paddr = addr;
+	if(pgprot_rkp_ro(prot))
+		paddr &= (~PTE_RKP_RO);
+	pte = pte_alloc_kernel(pmd, paddr);
+#else
 	pte = pte_alloc_kernel(pmd, addr);
+#endif
 	if (!pte)
 		return -ENOMEM;
 	do {
@@ -340,8 +369,6 @@ static unsigned long cached_vstart;
 static unsigned long cached_align;
 
 static unsigned long vmap_area_pcpu_hole;
-
-static atomic_long_t nr_vmalloc_pages;
 
 unsigned long vmalloc_nr_pages(void)
 {
@@ -2809,6 +2836,8 @@ static const struct file_operations proc_vmalloc_operations = {
 static int __init proc_vmalloc_init(void)
 {
 	proc_create("vmallocinfo", S_IRUSR, NULL, &proc_vmalloc_operations);
+	atomic_long_set(&nr_vmalloc_pages, 0);
+	show_mem_extra_notifier_register(&vmalloc_size_nb);
 	return 0;
 }
 module_init(proc_vmalloc_init);
