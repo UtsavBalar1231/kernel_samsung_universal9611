@@ -166,7 +166,7 @@ static void *__dma_alloc(struct device *dev, size_t size,
 	/* create a coherent mapping */
 	page = virt_to_page(ptr);
 	coherent_ptr = dma_common_contiguous_remap(page, size, VM_USERMAP,
-						   prot, NULL);
+						   prot, __builtin_return_address(0));
 	if (!coherent_ptr)
 		goto no_map;
 
@@ -385,6 +385,36 @@ static const struct dma_map_ops swiotlb_dma_ops = {
 	.dma_supported = __swiotlb_dma_supported,
 	.mapping_error = __swiotlb_dma_mapping_error,
 };
+
+static void *arm_exynos_dma_mcode_alloc(struct device *dev, size_t size,
+	dma_addr_t *handle, gfp_t gfp, unsigned long attrs);
+static void arm_exynos_dma_mcode_free(struct device *dev, size_t size, void *cpu_addr,
+				  dma_addr_t handle, unsigned long attrs);
+
+struct dma_map_ops arm_exynos_dma_mcode_ops = {
+	.alloc			= arm_exynos_dma_mcode_alloc,
+	.free			= arm_exynos_dma_mcode_free,
+};
+EXPORT_SYMBOL(arm_exynos_dma_mcode_ops);
+
+static void *arm_exynos_dma_mcode_alloc(struct device *dev, size_t size,
+	dma_addr_t *handle, gfp_t gfp, unsigned long attrs)
+{
+	void *addr;
+
+	if (!*handle)
+		return NULL;
+
+	addr = ioremap(*handle, size);
+
+	return addr;
+}
+
+static void arm_exynos_dma_mcode_free(struct device *dev, size_t size, void *cpu_addr,
+				  dma_addr_t handle, unsigned long attrs)
+{
+	iounmap(cpu_addr);
+}
 
 static int __init atomic_pool_init(void)
 {
