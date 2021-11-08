@@ -435,6 +435,7 @@ struct page *__read_swap_cache_async(swp_entry_t entry, gfp_t gfp_mask,
 			/*
 			 * Initiate read into locked page and return.
 			 */
+			SetPageWorkingset(new_page);
 			lru_cache_add_anon(new_page);
 			*new_page_allocated = true;
 			return new_page;
@@ -512,6 +513,7 @@ static unsigned int __swapin_nr_pages(unsigned long prev_offset,
 	return pages;
 }
 
+#ifdef CONFIG_SWAP_ENABLE_READAHEAD
 static unsigned long swapin_nr_pages(unsigned long offset)
 {
 	static unsigned long prev_offset;
@@ -597,6 +599,13 @@ struct page *swapin_readahead(swp_entry_t entry, gfp_t gfp_mask,
 skip:
 	return read_swap_cache_async(entry, gfp_mask, vma, addr, do_poll);
 }
+#else
+struct page *swapin_readahead(swp_entry_t entry, gfp_t gfp_mask,
+			struct vm_area_struct *vma, unsigned long addr)
+{
+	return read_swap_cache_async(entry, gfp_mask, vma, addr, true);
+}
+#endif
 
 int init_swap_address_space(unsigned int type, unsigned long nr_pages)
 {
