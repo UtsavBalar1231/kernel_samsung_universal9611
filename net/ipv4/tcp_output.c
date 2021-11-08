@@ -194,7 +194,7 @@ u32 tcp_default_init_rwnd(u32 mss)
 	 * (RFC 3517, Section 4, NextSeg() rule (2)). Further place a
 	 * limit when mss is larger than 1460.
 	 */
-	u32 init_rwnd = TCP_INIT_CWND * 2;
+	u32 init_rwnd = sysctl_tcp_default_init_rwnd;
 
 	if (mss > 1460)
 		init_rwnd = max((1460 * init_rwnd) / mss, 2U);
@@ -2201,8 +2201,16 @@ static bool tcp_small_queue_check(struct sock *sk, const struct sk_buff *skb,
 	unsigned int limit;
 
 	limit = max(2 * skb->truesize, sk->sk_pacing_rate >> 10);
-	limit = min_t(u32, limit, sysctl_tcp_limit_output_bytes);
-	limit <<= factor;
+	if (factor > 0) {
+		limit = min_t(u32, limit, sysctl_tcp_limit_output_bytes);
+		limit <<= factor;
+	} else {
+		/* FIXME: P170118-06256/P171122-01021/P171122-00262
+		 * Disable TSQ to avoid TSQ full and UL TP degression in
+		 * bad network condition
+		 */
+		limit = max_t(u32, limit, 4194304);
+	}
 
 	if (refcount_read(&sk->sk_wmem_alloc) > limit) {
 		/* Always send the 1st or 2nd skb in write queue.
