@@ -1,0 +1,462 @@
+From 83bd412524d8ddb6d9fbfd83b8e0cc357fd921a0 Mon Sep 17 00:00:00 2001
+From: Sultan Alsawaf <sultan@kerneltoast.com>
+Date: Fri, 12 Jul 2019 16:57:29 -0700
+Subject: [PATCH] mm: Add allocation statistics
+
+Usage: "cat /proc/alloc_stats"
+
+Signed-off-by: Sultan Alsawaf <sultan@kerneltoast.com>
+---
+ include/linux/mm_types.h |   1 +
+ include/linux/slab.h     | 137 ++++++++++++++++++++++++
+ mm/Makefile              |   1 +
+ mm/alloc_stats.c         | 220 +++++++++++++++++++++++++++++++++++++++
+ mm/slab_common.c         |   2 +-
+ mm/slub.c                |   6 +-
+ 6 files changed, 363 insertions(+), 4 deletions(-)
+ create mode 100644 mm/alloc_stats.c
+
+diff --git a/include/linux/mm_types.h b/include/linux/mm_types.h
+index fe6349928da2..7116f0aa68af 100644
+--- a/include/linux/mm_types.h
++++ b/include/linux/mm_types.h
+@@ -223,6 +223,7 @@ struct page {
+ #ifdef LAST_CPUPID_NOT_IN_PAGE_FLAGS
+ 	int _last_cpupid;
+ #endif
++	void *alloc_stats;
+ }
+ /*
+  * The struct page can be forced to be double word aligned so that atomic ops
+diff --git a/include/linux/slab.h b/include/linux/slab.h
+index 16dc1e4a91f3..1b0dfd4b088c 100644
+--- a/include/linux/slab.h
++++ b/include/linux/slab.h
+@@ -634,4 +634,141 @@ static inline void *kzalloc_node(size_t size, gfp_t flags, int node)
+ unsigned int kmem_cache_size(struct kmem_cache *s);
+ void __init kmem_cache_init_late(void);
+ 
++#include <linux/mm.h>
++#ifdef CONFIG_SLAB
++#include <linux/slab_def.h>
++#endif
++#ifdef CONFIG_SLUB
++#include <linux/slub_def.h>
++#endif
++void *alloc_stats_add(const char *file, const char *func, int line, size_t size,
++		      gfp_t gfpflags);
++void alloc_stats_free(void *stats_ptr, const char *file, const char *func);
++#define kzalloc(__size, __flags) \
++({									\
++	void *__objp;							\
++									\
++	__objp = (kzalloc)(__size, __flags);				\
++	if (__objp && virt_addr_valid(__objp)) {			\
++		struct page *__page = virt_to_head_page(__objp);	\
++									\
++		__page->alloc_stats = alloc_stats_add(__FILE__,		\
++						      __func__,		\
++						      __LINE__,		\
++						      __size,		\
++						      __flags);		\
++	}								\
++									\
++	__objp;								\
++})
++
++#define kmalloc(__size, __flags) \
++({									\
++	void *__objp;							\
++									\
++	__objp = (kmalloc)(__size, __flags);				\
++	if (__objp && virt_addr_valid(__objp)) {			\
++		struct page *__page = virt_to_head_page(__objp);	\
++									\
++		__page->alloc_stats = alloc_stats_add(__FILE__,		\
++						      __func__,		\
++						      __LINE__,		\
++						      __size,		\
++						      __flags);		\
++	}								\
++									\
++	__objp;								\
++})
++
++#define kcalloc(__n, __size, __flags) \
++({									\
++	void *__objp;							\
++									\
++	__objp = (kcalloc)(__n, __size, __flags);			\
++	if (__objp && virt_addr_valid(__objp)) {			\
++		struct page *__page = virt_to_head_page(__objp);	\
++									\
++		__page->alloc_stats = alloc_stats_add(__FILE__,		\
++						      __func__,		\
++						      __LINE__,		\
++						      (__n) * (__size),	\
++						      __flags);		\
++	}								\
++									\
++	__objp;								\
++})
++
++#define kmem_cache_alloc(__cache, __flags) \
++({									\
++	void *__objp;							\
++									\
++	__objp = kmem_cache_alloc(__cache, __flags);			\
++	if (__objp && virt_addr_valid(__objp)) {			\
++		struct page *__page = virt_to_head_page(__objp);	\
++		struct kmem_cache *__c = (void *)(__cache);		\
++									\
++		__page->alloc_stats = alloc_stats_add(__FILE__,		\
++						      __func__,		\
++						      __LINE__,		\
++						      __c->object_size,	\
++						      __flags);		\
++	}								\
++									\
++	__objp;								\
++})
++
++#define kmem_cache_zalloc(__cache, __flags) \
++({									\
++	void *__objp;							\
++									\
++	__objp = kmem_cache_zalloc(__cache, __flags);			\
++	if (__objp && virt_addr_valid(__objp)) {			\
++		struct page *__page = virt_to_head_page(__objp);	\
++		struct kmem_cache *__c = (void *)(__cache);		\
++									\
++		__page->alloc_stats = alloc_stats_add(__FILE__,		\
++						      __func__,		\
++						      __LINE__,		\
++						      __c->object_size,	\
++						      __flags);		\
++	}								\
++									\
++	__objp;								\
++})
++
++#define kfree(__objp) \
++({									\
++	if (!ZERO_OR_NULL_PTR(__objp) && virt_addr_valid(__objp)) {	\
++		struct page *__page = virt_to_head_page(__objp);	\
++									\
++		alloc_stats_free(__page->alloc_stats, __FILE__,		\
++				 __func__);				\
++	}								\
++									\
++	(kfree)(__objp);						\
++})
++
++#define kzfree(__objp) \
++({									\
++	if (!ZERO_OR_NULL_PTR(__objp) && virt_addr_valid(__objp)) {	\
++		struct page *__page = virt_to_head_page(__objp);	\
++									\
++		alloc_stats_free(__page->alloc_stats, __FILE__,		\
++				 __func__);				\
++	}								\
++									\
++	(kzfree)(__objp);						\
++})
++
++#define kmem_cache_free(__cache, __objp) \
++({									\
++	struct page *__page = virt_to_head_page(__objp);		\
++									\
++	if (__page->slab_cache == (__cache))				\
++		alloc_stats_free(__page->alloc_stats, __FILE__,		\
++				 __func__);				\
++									\
++	(kmem_cache_free)(__cache, __objp);				\
++})
++
+ #endif	/* _LINUX_SLAB_H */
+diff --git a/mm/Makefile b/mm/Makefile
+index aabd60df457f..63b39ef7b591 100644
+--- a/mm/Makefile
++++ b/mm/Makefile
+@@ -42,6 +42,7 @@ obj-y			:= filemap.o mempool.o oom_kill.o \
+ 			   interval_tree.o list_lru.o workingset.o \
+ 			   debug.o $(mmu-y) showmem.o vmpressure.o
+ 
++obj-y += alloc_stats.o
+ obj-y += init-mm.o
+ 
+ ifdef CONFIG_NO_BOOTMEM
+diff --git a/mm/alloc_stats.c b/mm/alloc_stats.c
+new file mode 100644
+index 000000000000..83f1294c8529
+--- /dev/null
++++ b/mm/alloc_stats.c
+@@ -0,0 +1,220 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * Copyright (C) 2019 Sultan Alsawaf <sultan@kerneltoast.com>.
++ */
++
++#include <linux/atomic.h>
++#include <linux/kernel.h>
++#include <linux/proc_fs.h>
++#include <linux/seq_file.h>
++#include <linux/slab.h>
++#include <linux/sort.h>
++#include <linux/vmalloc.h>
++
++#define PREALLOC_SIZE SZ_16M
++
++struct alloc_stats {
++	const char *file;
++	const char *func;
++	size_t min_size;
++	size_t max_size;
++	int line;
++	atomic_t freed_samefunc;
++	atomic_t count;
++} __aligned(sizeof(long));
++
++#define SKIP_COUNT \
++	((64 - sizeof(struct llist_head)) / sizeof(struct alloc_stats))
++
++struct stats_skip {
++	struct llist_node llnode;
++	struct alloc_stats stats[SKIP_COUNT];
++};
++
++static LLIST_HEAD(stats_skip_llist);
++static DEFINE_SPINLOCK(stats_lock);
++
++void *alloc_stats_add(const char *file, const char *func, int line, size_t size,
++		      gfp_t gfpflags)
++{
++	struct alloc_stats *stats = NULL;
++	struct stats_skip *skip;
++	unsigned long flags;
++	bool found = false;
++	int i;
++
++	if (!slab_is_available())
++		return NULL;
++
++	spin_lock_irqsave(&stats_lock, flags);
++	llist_for_each_entry(skip, stats_skip_llist.first, llnode) {
++		for (i = 0; i < SKIP_COUNT; i++) {
++			stats = skip->stats + i;
++
++			if (stats->file == file && stats->line == line) {
++				if (size < stats->min_size)
++					stats->min_size = size;
++				if (size > stats->max_size)
++					stats->max_size = size;
++				atomic_inc(&stats->count);
++				found = true;
++				break;
++			}
++
++			if (!stats->file) {
++				*stats = (typeof(*stats)){
++					.file = file,
++					.func = func,
++					.line = line,
++					.min_size = size,
++					.max_size = size,
++					.count = ATOMIC_INIT(1),
++					.freed_samefunc = ATOMIC_INIT(0)
++				};
++				found = true;
++				break;
++			}
++		}
++
++		if (found)
++			break;
++	}
++
++	if (!found) {
++		gfpflags = (gfpflags & GFP_ATOMIC) | __GFP_NOWARN;
++		do {
++			skip = (kzalloc)(sizeof(*skip), gfpflags);
++		} while (!skip);
++		llist_add(&skip->llnode, &stats_skip_llist);
++		skip->stats[0] = (typeof(*skip->stats)){
++			.file = file,
++			.func = func,
++			.line = line,
++			.min_size = size,
++			.max_size = size,
++			.count = ATOMIC_INIT(1),
++			.freed_samefunc = ATOMIC_INIT(0)
++		};
++	}
++	spin_unlock_irqrestore(&stats_lock, flags);
++
++	return stats;
++}
++
++void alloc_stats_free(void *stats_ptr, const char *file, const char *func)
++{
++	struct alloc_stats *stats = stats_ptr;
++
++	if (!stats)
++		return;
++
++	if (stats->file == file && stats->func == func)
++		atomic_inc(&stats->freed_samefunc);
++}
++
++static int alloc_count_cmp(const void *lhs_ptr, const void *rhs_ptr)
++{
++	const struct alloc_stats *lhs = (typeof(lhs))lhs_ptr;
++	const struct alloc_stats *rhs = (typeof(rhs))rhs_ptr;
++
++	return atomic_read(&rhs->count) - atomic_read(&lhs->count);
++}
++
++static int alloc_stats_show(struct seq_file *m, void *unused)
++{
++	struct alloc_stats *stats, *stats_array;
++	int i = 0, j = 0, k = 0, count = 0;
++	struct stats_skip *skip;
++	char size_str[SZ_128];
++	unsigned long flags;
++
++	spin_lock_irqsave(&stats_lock, flags);
++	llist_for_each_entry(skip, stats_skip_llist.first, llnode)
++		count++;
++	spin_unlock_irqrestore(&stats_lock, flags);
++
++	if (!count)
++		return -ENODEV;
++
++	stats_array = (vmalloc)(count * SKIP_COUNT * sizeof(*stats_array));
++	if (!stats_array)
++		return -ENOMEM;
++
++	spin_lock_irqsave(&stats_lock, flags);
++	llist_for_each_entry(skip, stats_skip_llist.first, llnode) {
++		for (j = 0; j < SKIP_COUNT; j++) {
++			struct alloc_stats *stats = skip->stats + j;
++
++			if (!stats->file)
++				break;
++
++			stats_array[k++] = *stats;
++		}
++
++		if (++i == count) {
++			count = k;
++			break;
++		}
++	}
++	spin_unlock_irqrestore(&stats_lock, flags);
++
++	sort(stats_array, count, sizeof(*stats_array), alloc_count_cmp, NULL);
++
++	seq_puts(m, "[freed same func] [count] [size (range)] [file:line]\n");
++	for (i = 0; i < count; i++) {
++		stats = stats_array + i;
++
++		if (stats->min_size == stats->max_size)
++			snprintf(size_str, sizeof(size_str), "%luB",
++				 stats->min_size);
++		else
++			snprintf(size_str, sizeof(size_str), "[%luB, %luB]",
++				 stats->min_size, stats->max_size);
++
++		if (atomic_read(&stats->freed_samefunc))
++			seq_printf(m, "%10dx %10dx %20s at %s:%d\n",
++				   atomic_read(&stats->freed_samefunc),
++				   atomic_read(&stats->count), size_str,
++				   stats->file, stats->line);
++		else
++			seq_printf(m, "            %10dx %20s at %s:%d\n",
++				   atomic_read(&stats->count), size_str,
++				   stats->file, stats->line);
++	}
++
++	(vfree)(stats_array);
++	return 0;
++}
++
++static int alloc_stats_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, alloc_stats_show, NULL);
++}
++
++static const struct file_operations alloc_stats_fops = {
++	.owner = THIS_MODULE,
++	.open = alloc_stats_open,
++	.read = seq_read,
++	.llseek = seq_lseek,
++	.release = single_release
++};
++
++static int __init alloc_stats_init(void)
++{
++	int count = PREALLOC_SIZE / sizeof(struct stats_skip);
++	struct stats_skip *skip;
++	unsigned long flags;
++	int i;
++
++	while (!(skip = vmalloc(count * sizeof(*skip))));
++	memset(skip, 0, count * sizeof(*skip));
++
++	spin_lock_irqsave(&stats_lock, flags);
++	for (i = 0; i < count; i++)
++		llist_add(&skip[i].llnode, &stats_skip_llist);
++	spin_unlock_irqrestore(&stats_lock, flags);
++
++	proc_create("alloc_stats", 0444, NULL, &alloc_stats_fops);
++	return 0;
++}
++late_initcall(alloc_stats_init);
+diff --git a/mm/slab_common.c b/mm/slab_common.c
+index 7315b368e834..f8d7186fc649 100644
+--- a/mm/slab_common.c
++++ b/mm/slab_common.c
+@@ -1316,7 +1316,7 @@ EXPORT_SYMBOL(krealloc);
+  * deal bigger than the requested buffer size passed to kmalloc(). So be
+  * careful when using this function in performance sensitive code.
+  */
+-void kzfree(const void *p)
++void (kzfree)(const void *p)
+ {
+ 	size_t ks;
+ 	void *mem = (void *)p;
+diff --git a/mm/slub.c b/mm/slub.c
+index 447a2f1b0b4d..b1b01580ad79 100644
+--- a/mm/slub.c
++++ b/mm/slub.c
+@@ -2681,7 +2681,7 @@ static __always_inline void *slab_alloc(struct kmem_cache *s,
+ 	return slab_alloc_node(s, gfpflags, NUMA_NO_NODE, addr);
+ }
+ 
+-void *kmem_cache_alloc(struct kmem_cache *s, gfp_t gfpflags)
++void *(kmem_cache_alloc)(struct kmem_cache *s, gfp_t gfpflags)
+ {
+ 	void *ret = slab_alloc(s, gfpflags, _RET_IP_);
+ 
+@@ -2931,7 +2931,7 @@ void ___cache_free(struct kmem_cache *cache, void *x, unsigned long addr)
+ }
+ #endif
+ 
+-void kmem_cache_free(struct kmem_cache *s, void *x)
++void (kmem_cache_free)(struct kmem_cache *s, void *x)
+ {
+ 	s = cache_from_obj(s, x);
+ 	if (!s)
+@@ -3799,7 +3799,7 @@ size_t ksize(const void *object)
+ }
+ EXPORT_SYMBOL(ksize);
+ 
+-void kfree(const void *x)
++void (kfree)(const void *x)
+ {
+ 	struct page *page;
+ 	void *object = (void *)x;
+-- 
+2.22.0
+
+
