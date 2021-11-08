@@ -23,7 +23,6 @@
 #include <linux/module.h>
 #include <linux/types.h>
 #include <linux/fs.h>
-#include <linux/fscrypt.h>
 #include <linux/mm.h>
 #include <linux/slab.h>
 #include <linux/highmem.h>
@@ -38,6 +37,9 @@
 #include <linux/uio.h>
 #include <linux/atomic.h>
 #include <linux/prefetch.h>
+
+#define __FS_HAS_ENCRYPTION IS_ENABLED(CONFIG_FS_ENCRYPTION)
+#include <linux/fscrypt.h>
 
 /*
  * How many user pages to map in one call to get_user_pages().  This determines
@@ -432,7 +434,6 @@ dio_bio_alloc(struct dio *dio, struct dio_submit *sdio,
 	      sector_t first_sector, int nr_vecs)
 {
 	struct bio *bio;
-	struct inode *inode = dio->inode;
 
 	/*
 	 * bio_alloc() is guaranteed to return a bio when called with
@@ -440,9 +441,6 @@ dio_bio_alloc(struct dio *dio, struct dio_submit *sdio,
 	 */
 	bio = bio_alloc(GFP_KERNEL, nr_vecs);
 
-	fscrypt_set_bio_crypt_ctx(bio, inode,
-				  sdio->cur_page_fs_offset >> inode->i_blkbits,
-				  GFP_KERNEL);
 	bio_set_dev(bio, bdev);
 	bio->bi_iter.bi_sector = first_sector;
 	bio_set_op_attrs(bio, dio->op, dio->op_flags);
@@ -474,6 +472,14 @@ static inline void dio_bio_submit(struct dio *dio, struct dio_submit *sdio)
 	spin_lock_irqsave(&dio->bio_lock, flags);
 	dio->refcount++;
 	spin_unlock_irqrestore(&dio->bio_lock, flags);
+
+#if defined(CONFIG_FS_INLINE_ENCRYPTION)
+	if (fscrypt_inline_encrypted(dio->inode)) {
+		fscrypt_set_bio_cryptd_dun(dio->inode, bio,
+				fscrypt_get_dun(dio->inode,
+				(sdio->logical_offset_in_bio >> PAGE_SHIFT)));
+	}
+#endif
 
 	if (dio->is_async && dio->op == REQ_OP_READ && dio->should_dirty)
 		bio_set_pages_dirty(bio);
@@ -815,17 +821,9 @@ static inline int dio_send_cur_page(struct dio *dio, struct dio_submit *sdio,
 		 * current logical offset in the file does not equal what would
 		 * be the next logical offset in the bio, submit the bio we
 		 * have.
-		 *
-		 * When fscrypt inline encryption is used, data unit number
-		 * (DUN) contiguity is also required.  Normally that's implied
-		 * by logical contiguity.  However, certain IV generation
-		 * methods (e.g. IV_INO_LBLK_32) don't guarantee it.  So, we
-		 * must explicitly check fscrypt_mergeable_bio() too.
 		 */
 		if (sdio->final_block_in_bio != sdio->cur_page_block ||
-		    cur_offset != bio_next_offset ||
-		    !fscrypt_mergeable_bio(sdio->bio, dio->inode,
-					   cur_offset >> dio->inode->i_blkbits))
+		    cur_offset != bio_next_offset)
 			dio_bio_submit(dio, sdio);
 	}
 

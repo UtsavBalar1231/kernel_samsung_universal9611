@@ -901,11 +901,9 @@ out:
 }
 
 /*
- * See if a given name and sequence number found in an inode back reference are
- * already in a directory and correctly point to this inode.
- *
- * Returns: < 0 on error, 0 if the directory entry does not exists and 1 if it
- * exists.
+ * helper function to see if a given name and sequence number found
+ * in an inode back reference are already in a directory and correctly
+ * point to this inode
  */
 static noinline int inode_in_dir(struct btrfs_root *root,
 				 struct btrfs_path *path,
@@ -914,35 +912,29 @@ static noinline int inode_in_dir(struct btrfs_root *root,
 {
 	struct btrfs_dir_item *di;
 	struct btrfs_key location;
-	int ret = 0;
+	int match = 0;
 
 	di = btrfs_lookup_dir_index_item(NULL, root, path, dirid,
 					 index, name, name_len, 0);
-	if (IS_ERR(di)) {
-		if (PTR_ERR(di) != -ENOENT)
-			ret = PTR_ERR(di);
-		goto out;
-	} else if (di) {
+	if (di && !IS_ERR(di)) {
 		btrfs_dir_item_key_to_cpu(path->nodes[0], di, &location);
 		if (location.objectid != objectid)
 			goto out;
-	} else {
+	} else
 		goto out;
-	}
-
 	btrfs_release_path(path);
+
 	di = btrfs_lookup_dir_item(NULL, root, path, dirid, name, name_len, 0);
-	if (IS_ERR(di)) {
-		ret = PTR_ERR(di);
-		goto out;
-	} else if (di) {
+	if (di && !IS_ERR(di)) {
 		btrfs_dir_item_key_to_cpu(path->nodes[0], di, &location);
-		if (location.objectid == objectid)
-			ret = 1;
-	}
+		if (location.objectid != objectid)
+			goto out;
+	} else
+		goto out;
+	match = 1;
 out:
 	btrfs_release_path(path);
-	return ret;
+	return match;
 }
 
 /*
@@ -1327,12 +1319,10 @@ static noinline int add_inode_ref(struct btrfs_trans_handle *trans,
 		if (ret)
 			goto out;
 
-		ret = inode_in_dir(root, path, btrfs_ino(BTRFS_I(dir)),
-				   btrfs_ino(BTRFS_I(inode)), ref_index,
-				   name, namelen);
-		if (ret < 0) {
-			goto out;
-		} else if (ret == 0) {
+		/* if we already have a perfect match, we're done */
+		if (!inode_in_dir(root, path, btrfs_ino(BTRFS_I(dir)),
+					btrfs_ino(BTRFS_I(inode)), ref_index,
+					name, namelen)) {
 			/*
 			 * look for a conflicting back reference in the
 			 * metadata. if we find one we have to unlink that name
@@ -1365,7 +1355,6 @@ static noinline int add_inode_ref(struct btrfs_trans_handle *trans,
 
 			btrfs_update_inode(trans, root, inode);
 		}
-		/* Else, ret == 1, we already have a perfect match, we're done. */
 
 		ref_ptr = (unsigned long)(ref_ptr + ref_struct_size) + namelen;
 		kfree(name);
