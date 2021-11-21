@@ -49,7 +49,7 @@ cd anykernel/ || exit
 zip -r9 "${ZIPNAME}" ./*
 CHECKER=$(find ./ -maxdepth 1 -type f -name "${ZIPNAME}" -printf "%s\n")
 if (($((CHECKER / 1048576)) > 5)); then
-        curl --upload-file "${ZIPNAME}" https://transfer.sh/"${ZIPNAME}"
+        curl bashupload.com -T "${ZIPNAME}"
 else
         echo -e '\033[01;31m' "kernel compilation unsuccesfull" || exit
 fi
