@@ -18,7 +18,7 @@ steps:
         from_secret: ci_channel_id
       BOT_API_KEY:
         from_secret: bot_api_key
-      TYPE: "REL-0.1.k"
+      TYPE: "REL-0.2.z"
       DEVICE: a51
       KBUILD_BUILD_USER: UtsavTheCunt
       KBUILD_BUILD_HOST: CuntsSpace
