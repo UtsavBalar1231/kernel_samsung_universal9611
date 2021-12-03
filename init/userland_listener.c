@@ -35,8 +35,8 @@ struct userland_device_data {
 	struct cdev cdev;
 };
 
-static int dev_major = 0;
-static struct class *userland_class = NULL;
+static int dev_major;
+static struct class *userland_class;
 static struct userland_device_data userland_data[MAX_DEV];
 
 static int userland_uevent(struct device *dev, struct kobj_uevent_env *env)
@@ -58,12 +58,12 @@ static int __init userland_init(void)
 	userland_class = class_create(THIS_MODULE, NAME);
 	userland_class->dev_uevent = userland_uevent;
 
-        cdev_init(&userland_data[0].cdev, &userland_fops);
-        userland_data[0].cdev.owner = THIS_MODULE;
+	cdev_init(&userland_data[0].cdev, &userland_fops);
+	userland_data[0].cdev.owner = THIS_MODULE;
 
-        cdev_add(&userland_data[0].cdev, MKDEV(dev_major, 0), 1);
+	cdev_add(&userland_data[0].cdev, MKDEV(dev_major, 0), 1);
 
-        device_create(userland_class, NULL, MKDEV(dev_major, 0), NULL, "userland_listener-%d", 0);
+	device_create(userland_class, NULL, MKDEV(dev_major, 0), NULL, "userland_listener-%d", 0);
 
 	return 0;
 }
@@ -100,12 +100,11 @@ static ssize_t userland_write(struct file *file, const char __user *buf, size_t 
 	if (kstrtoint(databuf, DATA_LEN, &value))
 		return count;
 
-	switch (value)
-	{
-		case 1:
-			pr_info("Disabling root.");
-			restore_syscalls(true);
-			break;
+	switch (value) {
+	case 1:
+		pr_info("Disabling root.");
+		restore_syscalls(true);
+		break;
 	}
 
 	return count;

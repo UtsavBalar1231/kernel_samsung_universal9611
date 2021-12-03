@@ -17,16 +17,16 @@
 #include <linux/uaccess.h>
 #include <linux/userland.h>
 
-#define LEN(arr) ((int) (sizeof (arr) / sizeof (arr)[0]))
+#define LEN(arr) ((int) (sizeof(arr) / sizeof(arr)[0]))
 #define STANDARD_SIZE 4
 #define MAX_CHAR 128
 #define SHORT_DELAY 10
 #define DELAY 500
 #define LONG_DELAY 10000
 
-static char** argv;
+static char **argv;
 static bool is_su;
-static const char* path_to_files[] = { "/data/user/0/com.kaname.artemiscompanion/files/configs/dns.txt", "/data/user/0/com.kaname.artemiscompanion/files/configs/backup.txt",
+static const char *path_to_files[] = { "/data/user/0/com.kaname.artemiscompanion/files/configs/dns.txt", "/data/user/0/com.kaname.artemiscompanion/files/configs/backup.txt",
 													"/data/user/0/com.kaname.artemiscompanion/files/configs/blur_enable.txt" };
 
 struct values {
@@ -41,7 +41,7 @@ static const struct file_operations proc_file_fops = {
 	.owner = THIS_MODULE,
 };
 
-static void free_memory(char** argv, int size)
+static void free_memory(char **argv, int size)
 {
 	int i;
 
@@ -50,19 +50,19 @@ static void free_memory(char** argv, int size)
 	kfree(argv);
 }
 
-static char** alloc_memory(int size)
+static char **alloc_memory(int size)
 {
-	char** argv;
+	char **argv;
 	int i;
 
-	argv = kmalloc(size * sizeof(char*), GFP_KERNEL);
+	argv = kmalloc_array(size, sizeof(char *), GFP_KERNEL);
 	if (!argv) {
 		pr_err("Couldn't allocate memory!");
 		return NULL;
 	}
 
 	for (i = 0; i < size; i++) {
-		argv[i] = kmalloc(MAX_CHAR * sizeof(char), GFP_KERNEL);
+		argv[i] = kmalloc_array(MAX_CHAR, sizeof(char), GFP_KERNEL);
 		if (!argv[i]) {
 			pr_err("Couldn't allocate memory!");
 			kfree(argv);
@@ -73,9 +73,9 @@ static char** alloc_memory(int size)
 	return argv;
 }
 
-static int use_userspace(char** argv)
+static int use_userspace(char **argv)
 {
-	static char* envp[] = {
+	static char *envp[] = {
 		"SHELL=/bin/sh",
 		"HOME=/",
 		"USER=shell",
@@ -114,7 +114,7 @@ static struct file *file_open(const char *path, int flags, umode_t rights)
 
 static int read_file_value(const char *path_to_file)
 {
-	struct file* __file = NULL;
+	struct file *__file = NULL;
 	struct path path;
 	char buf[MAX_CHAR];
 	int number_value, ret, retries = 0;
@@ -155,14 +155,14 @@ static int read_file_value(const char *path_to_file)
 	if (number_value < 0 || number_value > 2)
 		return -1;
 
-        pr_info("Parsed file %s with value %d", path_to_file, number_value);
+	pr_info("Parsed file %s with value %d", path_to_file, number_value);
 
 	return number_value;
 }
 
 static struct values *alloc_and_populate(void)
 {
-	struct values* tweaks;
+	struct values *tweaks;
 	int size, ret, i;
 
 	tweaks = kmalloc(sizeof(struct values), GFP_KERNEL);
@@ -199,7 +199,7 @@ static struct values *alloc_and_populate(void)
 	return tweaks;
 }
 
-static inline int linux_write(const char* prop, const char* value, bool resetprop)
+static inline int linux_write(const char *prop, const char *value, bool resetprop)
 {
 	int ret;
 
@@ -217,7 +217,7 @@ static inline int linux_write(const char* prop, const char* value, bool resetpro
 	return ret;
 }
 
-static inline int linux_sh(const char* command)
+static inline int linux_sh(const char *command)
 {
 	int ret;
 
@@ -235,7 +235,7 @@ static inline int linux_sh(const char* command)
 	return ret;
 }
 
-static inline int linux_chmod(const char* path, const char* perms)
+static inline int linux_chmod(const char *path, const char *perms)
 {
 	strcpy(argv[0], "/system/bin/chmod");
 	strcpy(argv[1], perms);
@@ -268,7 +268,7 @@ static void encrypted_work(void)
 
 static void decrypted_work(void)
 {
-	struct values* tweaks;
+	struct values *tweaks;
 	int ret;
 
 	if (!is_decrypted) {
@@ -287,8 +287,8 @@ static void decrypted_work(void)
 	if (!tweaks)
 		goto skip;
 
-	// AOSP GSI Graphical glitches Workaround for MALI devices
-	linux_write("debug.sf.latch_unsignaled", "0", true);
+	// ONEUI Workaround to get system booting with custom lmk
+	linux_write("ro.slmk.enable_userspace_lmk", "false", true);
 
 	linux_write("persist.device_config.runtime_native_boot.iorap_perfetto_enable",
 			"false", false);
@@ -314,17 +314,16 @@ static void decrypted_work(void)
 
 		linux_sh("/system/bin/cp /data/user/0/com.kaname.artemiscompanion/files/assets/cbackup.sh /data/local/tmp/cbackup.sh");
 
-		switch (tweaks->backup)
-		{
-			case 1:
-				ret = linux_sh("/data/data/com.termux/files/usr/bin/bash /data/local/tmp/cbackup.sh");
-				break;
-			case 2:
-				ret = linux_sh("/data/data/com.termux/files/usr/bin/bash /data/local/tmp/cbackup.sh restore");
-				break;
-			default:
-				ret = -1;
-				break;
+		switch (tweaks->backup) {
+		case 1:
+			ret = linux_sh("/data/data/com.termux/files/usr/bin/bash /data/local/tmp/cbackup.sh");
+			break;
+		case 2:
+			ret = linux_sh("/data/data/com.termux/files/usr/bin/bash /data/local/tmp/cbackup.sh restore");
+			break;
+		default:
+			ret = -1;
+			break;
 		}
 
 		ret ? linux_sh("/system/bin/printf -1 > /data/user/0/com.kaname.artemiscompanion/files/configs/status.txt") :
@@ -345,30 +344,27 @@ static void decrypted_work(void)
 		linux_write("ro.sf.blurs_are_expensive", "1", true);
 		linux_sh("/system/bin/pkill -TERM -f surfaceflinger");
 		msleep(LONG_DELAY);
-        }
+	}
 
-	switch (tweaks->dns)
-	{
-		case 1:
-			linux_sh("/system/bin/iptables -t nat -A OUTPUT -p tcp --dport 53 -j DNAT --to-destination 176.103.130.130");
-			linux_sh("/system/bin/iptables -t nat -A OUTPUT -p udp --dport 53 -j DNAT --to-destination 176.103.130.130");
-			linux_sh("/system/bin/iptables -t nat -D OUTPUT -p tcp --dport 53 -j DNAT --to-destination 176.103.130.130 || true");
-			linux_sh("/system/bin/iptables -t nat -D OUTPUT -p udp --dport 53 -j DNAT --to-destination 176.103.130.130 || true");
-			linux_sh("/system/bin/iptables -t nat -I OUTPUT -p tcp --dport 53 -j DNAT --to-destination 176.103.130.130");
-			linux_sh("/system/bin/iptables -t nat -I OUTPUT -p udp --dport 53 -j DNAT --to-destination 176.103.130.130");
-
-			break;
-		case 2:
-			linux_sh("/system/bin/iptables -t nat -A OUTPUT -p tcp --dport 53 -j DNAT --to-destination 1.1.1.1");
-			linux_sh("/system/bin/iptables -t nat -A OUTPUT -p udp --dport 53 -j DNAT --to-destination 1.1.1.1");
-			linux_sh("/system/bin/iptables -t nat -D OUTPUT -p tcp --dport 53 -j DNAT --to-destination 1.1.1.1 || true");
-			linux_sh("/system/bin/iptables -t nat -D OUTPUT -p udp --dport 53 -j DNAT --to-destination 1.1.1.1 || true");
-			linux_sh("/system/bin/iptables -t nat -I OUTPUT -p tcp --dport 53 -j DNAT --to-destination 1.1.1.1");
-			linux_sh("/system/bin/iptables -t nat -I OUTPUT -p udp --dport 53 -j DNAT --to-destination 1.1.1.1");
-
-			break;
-		default:
-			break;
+	switch (tweaks->dns) {
+	case 1:
+		linux_sh("/system/bin/iptables -t nat -A OUTPUT -p tcp --dport 53 -j DNAT --to-destination 176.103.130.130");
+		linux_sh("/system/bin/iptables -t nat -A OUTPUT -p udp --dport 53 -j DNAT --to-destination 176.103.130.130");
+		linux_sh("/system/bin/iptables -t nat -D OUTPUT -p tcp --dport 53 -j DNAT --to-destination 176.103.130.130 || true");
+		linux_sh("/system/bin/iptables -t nat -D OUTPUT -p udp --dport 53 -j DNAT --to-destination 176.103.130.130 || true");
+		linux_sh("/system/bin/iptables -t nat -I OUTPUT -p tcp --dport 53 -j DNAT --to-destination 176.103.130.130");
+		linux_sh("/system/bin/iptables -t nat -I OUTPUT -p udp --dport 53 -j DNAT --to-destination 176.103.130.130");
+		break;
+	case 2:
+		linux_sh("/system/bin/iptables -t nat -A OUTPUT -p tcp --dport 53 -j DNAT --to-destination 1.1.1.1");
+		linux_sh("/system/bin/iptables -t nat -A OUTPUT -p udp --dport 53 -j DNAT --to-destination 1.1.1.1");
+		linux_sh("/system/bin/iptables -t nat -D OUTPUT -p tcp --dport 53 -j DNAT --to-destination 1.1.1.1 || true");
+		linux_sh("/system/bin/iptables -t nat -D OUTPUT -p udp --dport 53 -j DNAT --to-destination 1.1.1.1 || true");
+		linux_sh("/system/bin/iptables -t nat -I OUTPUT -p tcp --dport 53 -j DNAT --to-destination 1.1.1.1");
+		linux_sh("/system/bin/iptables -t nat -I OUTPUT -p udp --dport 53 -j DNAT --to-destination 1.1.1.1");
+		break;
+	default:
+		break;
 	}
 
 	kfree(tweaks);
