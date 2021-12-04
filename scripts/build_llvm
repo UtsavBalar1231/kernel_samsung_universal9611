@@ -5,7 +5,11 @@ HOME="/home/utsavbalar"
 # Kernel Output
 OUT_DIR="out"
 VERSION="REL-0.2.z"
-DEVICE="a51"
+if [[ "$@" =~ "oneui"* ]]; then
+	DEVICE="a51-oneui"
+else
+	DEVICE="a51"
+fi
 DATE=$(date +"%d.%m.%y.%S")
 ZIPNAME=IMMENSITY-X-${DEVICE}-${VERSION}-${DATE}.zip
 

@@ -1,0 +1,40 @@
+#!/bin/bash
+
+# HOME path
+HOME="/home/utsavbalar"
+# Kernel Output
+OUT_DIR="out"
+if [[ "$@" =~ "oneui"* ]]; then
+	DEVICE="a51-oneui"
+else
+	DEVICE="a51"
+fi
+
+if [[ "$@" =~ "oneui"* ]]; then
+	make ARCH=arm64 \
+	        O=${OUT_DIR} \
+	        vendor/${DEVICE}_defconfig \
+	        -j$(nproc --all)
+else
+	make ARCH=arm64 \
+	        O=${OUT_DIR} \
+	        ${DEVICE}_defconfig \
+	        -j$(nproc --all)
+fi
+
+if [[ "$@" =~ "oneui"* ]]; then
+	cp ${OUT_DIR}/.config arch/arm64/configs/vendor/exynos9610-a51xx-oneui_defconfig
+else
+	cp ${OUT_DIR}/.config arch/arm64/configs/exynos9610-a51xx_defconfig
+fi
+
+make ARCH=arm64 \
+        O=${OUT_DIR} \
+        savedefconfig \
+        -j$(nproc --all)
+
+if [[ "$@" =~ "oneui"* ]]; then
+	cp ${OUT_DIR}/defconfig arch/arm64/configs/vendor/${DEVICE}_defconfig
+else
+	cp ${OUT_DIR}/defconfig arch/arm64/configs/${DEVICE}_defconfig
+fi
