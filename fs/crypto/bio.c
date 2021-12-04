@@ -77,27 +77,21 @@ int fscrypt_zeroout_range(const struct inode *inode, pgoff_t lblk,
 	struct bio *bio;
 	int ret, err = 0;
 
-	if (__fscrypt_inline_encrypted(inode)) {
-		ciphertext_page = fscrypt_alloc_bounce_page(NULL, GFP_NOWAIT);
-		if (!ciphertext_page)
-			return -ENOMEM;
+	ciphertext_page = fscrypt_alloc_bounce_page(GFP_NOWAIT);
+	if (!ciphertext_page)
+		return -ENOMEM;
 
+	if (__fscrypt_inline_encrypted(inode)) {
 		memset(page_address(ciphertext_page), 0, PAGE_SIZE);
 		ciphertext_page->mapping = inode->i_mapping;
-	} else {
-		ciphertext_page = fscrypt_alloc_bounce_page(GFP_NOWAIT);
-		if (!ciphertext_page)
-			return -ENOMEM;
 	}
 
 	while (len--) {
-		if (ctx) {
-			err = fscrypt_crypt_block(inode, FS_ENCRYPT, lblk,
-						  ZERO_PAGE(0), ciphertext_page,
-						  blocksize, 0, GFP_NOFS);
-			if (err)
-				goto errout;
-		}
+		err = fscrypt_crypt_block(inode, FS_ENCRYPT, lblk,
+					  ZERO_PAGE(0), ciphertext_page,
+					  blocksize, 0, GFP_NOFS);
+		if (err)
+			goto errout;
 
 		bio = bio_alloc(GFP_NOWAIT, 1);
 		if (!bio) {
