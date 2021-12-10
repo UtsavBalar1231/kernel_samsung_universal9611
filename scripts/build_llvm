@@ -4,8 +4,12 @@
 HOME="/home/utsavbalar"
 # Kernel Output
 OUT_DIR="out"
-VERSION="REL-0.1-f"
-DEVICE="a51"
+VERSION="REL-0.2.z"
+if [[ "$@" =~ "oneui"* ]]; then
+	DEVICE="a51-oneui"
+else
+	DEVICE="a51"
+fi
 DATE=$(date +"%d.%m.%y.%S")
 ZIPNAME=IMMENSITY-X-${DEVICE}-${VERSION}-${DATE}.zip
 
@@ -14,7 +18,7 @@ export PLATFORM_VERSION=11
 export ANDROID_MAJOR_VERSION=r
 
 # Set compiler PATH
-PATH=${HOME}/clang-r416183b1/bin:${HOME}/gcc-aarch64/bin:$PATH
+PATH=${HOME}/clang-r416183b1/bin:${HOME}/arm64-gcc/bin:${HOME}/arm-gcc/bin:$PATH
 
 make ARCH=arm64 \
         O=${OUT_DIR} \
@@ -27,7 +31,14 @@ START=$(date +"%s")
 make ARCH=arm64 \
         O=${OUT_DIR} \
 	CC="ccache clang" \
+	LD="ld.lld" \
+	AR="llvm-ar" \
+	NM="llvm-nm" \
+	OBJCOPY="llvm-objcopy" \
+	OBJDUMP="llvm-objdump" \
+	STRIP="llvm-strip" \
         CROSS_COMPILE="aarch64-linux-android-" \
+	CROSS_COMPILE_ARM32="arm-linux-androideabi-" \
 	CLANG_TRIPLE="aarch64-linux-gnu-" \
         -j8
 
@@ -42,7 +53,7 @@ cd anykernel/ || exit
 zip -r9 "${ZIPNAME}" ./*
 CHECKER=$(find ./ -maxdepth 1 -type f -name "${ZIPNAME}" -printf "%s\n")
 if (($((CHECKER / 1048576)) > 5)); then
-        curl --upload-file "${ZIPNAME}" https://transfer.sh/"${ZIPNAME}"
+        curl bashupload.com -T "${ZIPNAME}"
 else
         echo -e '\033[01;31m' "kernel compilation unsuccesfull" || exit
 fi
