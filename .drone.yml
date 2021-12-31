@@ -29,6 +29,6 @@ steps:
       - ./build-kernel
     when:
       branch:
-        - android11-stable
+        - test
       event:
         - push
